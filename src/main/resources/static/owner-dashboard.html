@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Owner Dashboard - Starlight</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Outfit:wght@400;700;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="admin-styles.css"/>
+</head>
+<body class="admin-body">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><span>??</span><span>Owner View</span></div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Overview</div>
+      <button class="sidebar-link active" onclick="showPanel('overview')">Revenue & Stats</button>
+      <button class="sidebar-link" onclick="showPanel('books')">Catalogue</button>
+      <button class="sidebar-link" onclick="showPanel('orders')">All Orders</button>
+    </div>
+    <div class="sidebar-footer">
+      <div class="admin-avatar">
+        <div class="avatar-icon" id="avatarInitial">O</div>
+        <div><div class="avatar-name" id="ownerName">Owner</div><div class="avatar-role">OWNER</div></div>
+      </div>
+      <button class="sidebar-logout" onclick="doLogout()">Sign Out</button>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="top-bar">
+      <div><div class="page-title">Owner <span>Dashboard</span></div><div class="top-time" id="topTime"></div></div>
+    </div>
+    <div id="panel-overview">
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-icon gold">Rs</div><div><div class="stat-num gold" id="mRevenue">--</div><div class="stat-lbl">Total Revenue</div></div></div>
+        <div class="stat-card"><div class="stat-icon green">ORD</div><div><div class="stat-num green" id="mOrders">--</div><div class="stat-lbl">Total Orders</div></div></div>
+        <div class="stat-card"><div class="stat-icon blue">BK</div><div><div class="stat-num blue" id="mBooks">--</div><div class="stat-lbl">Books</div></div></div>
+        <div class="stat-card"><div class="stat-icon purple">PND</div><div><div class="stat-num purple" id="mPending">--</div><div class="stat-lbl">Pending Orders</div></div></div>
+        <div class="stat-card"><div class="stat-icon pink">TKT</div><div><div class="stat-num pink" id="mTickets">--</div><div class="stat-lbl">Open Tickets</div></div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">Recent Orders</div><button class="panel-link" onclick="showPanel('orders')">View All &rarr;</button></div>
+        <table class="tbl">
+          <thead><tr><th>#</th><th>Customer</th><th>Payment</th><th>Total</th><th>Status</th><th>Date</th></tr></thead>
+          <tbody id="ownerOrders"><tr><td colspan="6" class="text-c text-m">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <div id="panel-books" style="display:none;">
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">Catalogue (Read-Only)</div><button class="panel-link" onclick="showPanel('overview')">? Back</button></div>
+        <table class="tbl">
+          <thead><tr><th>#</th><th>Title</th><th>Author</th><th>Price</th><th>Stock</th><th>Genre</th></tr></thead>
+          <tbody id="ownerBooks"><tr><td colspan="6" class="text-c text-m">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <div id="panel-orders" style="display:none;">
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">All Orders (Read-Only)</div><button class="panel-link" onclick="showPanel('overview')">? Back</button></div>
+        <table class="tbl">
+          <thead><tr><th>#</th><th>Customer</th><th>Items</th><th>Payment</th><th>Total</th><th>Status</th><th>Date</th></tr></thead>
+          <tbody id="ownerAllOrders"><tr><td colspan="7" class="text-c text-m">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+  <div id="toast"></div>
+  <script>
+    const API='http://localhost:8080',token=localStorage.getItem('sb_token'),user=JSON.parse(localStorage.getItem('sb_user')||'null');
+    if(!token||!user||user.role!=='OWNER'){window.location.href='login.html';}
+    document.getElementById('ownerName').textContent=user?.username||'Owner';
+    document.getElementById('avatarInitial').textContent=(user?.username||'O').charAt(0).toUpperCase();
+    function updateTime(){document.getElementById('topTime').textContent=new Date().toLocaleString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'});}
+    updateTime();setInterval(updateTime,60000);
+    function toast(msg,type){const t=document.getElementById('toast');t.textContent=msg;t.className='show '+(type||'success');setTimeout(()=>t.className='',3000);}
+    async function api(url,opts={}){const res=await fetch(API+url,{...opts,headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,...(opts.headers||{})},cache:'no-store'});if(!res.ok)throw new Error('HTTP '+res.status);if(res.status===204)return null;return res.json();}
+    function doLogout(){localStorage.removeItem('sb_token');localStorage.removeItem('sb_user');window.location.href='login.html';}
+    const PANELS=['overview','books','orders'];
+    function showPanel(name){PANELS.forEach(p=>{const el=document.getElementById('panel-'+p);if(el)el.style.display='none';});const t=document.getElementById('panel-'+name);if(t)t.style.display='block';if(name==='overview'){loadStats();loadRecentOrders();}if(name==='books')loadBooks();if(name==='orders')loadAllOrders();}
+    async function loadStats(){try{const s=await api('/api/dashboard/stats');document.getElementById('mRevenue').textContent='Rs '+Number(s.totalRevenue??0).toFixed(0);document.getElementById('mOrders').textContent=s.totalOrders??0;document.getElementById('mBooks').textContent=s.totalBooks??0;document.getElementById('mPending').textContent=s.pendingOrders??0;document.getElementById('mTickets').textContent=s.openTickets??0;}catch{['mRevenue','mOrders','mBooks','mPending','mTickets'].forEach(id=>document.getElementById(id).textContent='0');}}
+    async function loadRecentOrders(){const el=document.getElementById('ownerOrders');try{const list=await api('/api/orders');if(!list?.length){el.innerHTML='<tr><td colspan="6" class="text-c text-m">No orders yet</td></tr>';return;}el.innerHTML=list.slice(0,8).map(o=><tr><td><strong>#</strong></td><td></td><td><span class="badge"></span></td><td style="color:var(--gold);font-weight:700;">Rs </td><td><span class="badge "></span></td><td style="color:var(--muted);font-size:0.78rem;"></td></tr>).join('');}catch{el.innerHTML='<tr><td colspan="6" class="text-c text-m">Failed to load</td></tr>';}}
+    async function loadBooks(){const el=document.getElementById('ownerBooks');try{const list=await api('/api/books');if(!list?.length){el.innerHTML='<tr><td colspan="6" class="text-c text-m">No books</td></tr>';return;}el.innerHTML=list.map(b=><tr><td><strong>#</strong></td><td></td><td></td><td style="color:var(--gold);">Rs </td><td style="color:;"></td><td></td></tr>).join('');}catch{el.innerHTML='<tr><td colspan="6" class="text-c text-m">Failed to load</td></tr>';}}
+    async function loadAllOrders(){const el=document.getElementById('ownerAllOrders');try{const list=await api('/api/orders');if(!list?.length){el.innerHTML='<tr><td colspan="7" class="text-c text-m">No orders yet</td></tr>';return;}el.innerHTML=list.map(o=><tr><td><strong>#</strong></td><td></td><td> item(s)</td><td><span class="badge"></span></td><td style="color:var(--gold);font-weight:700;">Rs </td><td><span class="badge "></span></td><td style="color:var(--muted);font-size:0.78rem;"></td></tr>).join('');}catch{el.innerHTML='<tr><td colspan="7" class="text-c text-m">Failed to load</td></tr>';}}
+    loadStats();loadRecentOrders();
+  </script>
+<script src='theme.js'></script>
+</body>
+</html>
+

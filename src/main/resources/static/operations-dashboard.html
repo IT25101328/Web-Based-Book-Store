@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Operations Dashboard - Starlight</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Outfit:wght@400;700;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="admin-styles.css"/>
+<style>
+  body.admin-body {
+    background: linear-gradient(rgba(11, 12, 16, 0.75), rgba(11, 12, 16, 0.95)), url('/assets/operations-bg.jpg') no-repeat center center fixed !important;
+    background-size: cover !important;
+  }
+  .sidebar {
+    background: rgba(11, 12, 16, 0.65) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  .panel, .stat-card {
+    background: rgba(11, 12, 16, 0.6) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+</style>
+</head>
+<body class="admin-body">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><span>🚚</span><span>Operations</span></div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Order Management</div>
+      <button class="sidebar-link active" onclick="showPanel('orders')">All Orders</button>
+      <button class="sidebar-link" onclick="showPanel('pending')">Pending Orders</button>
+    </div>
+    <div class="sidebar-footer">
+      <div class="admin-avatar">
+        <div class="avatar-icon" id="avatarInitial">OP</div>
+        <div><div class="avatar-name" id="opsName">Operations</div><div class="avatar-role">STORE OPERATIONS</div></div>
+      </div>
+      <button class="sidebar-logout" onclick="doLogout()">Sign Out</button>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="top-bar">
+      <div><div class="page-title">Store Operations <span>Manager</span></div><div class="top-time" id="topTime"></div></div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-icon green">ORD</div><div><div class="stat-num green" id="sTotal">--</div><div class="stat-lbl">Total Orders</div></div></div>
+      <div class="stat-card"><div class="stat-icon purple">PND</div><div><div class="stat-num purple" id="sPending">--</div><div class="stat-lbl">Pending</div></div></div>
+      <div class="stat-card"><div class="stat-icon blue">PKD</div><div><div class="stat-num blue" id="sPacked">--</div><div class="stat-lbl">Packed</div></div></div>
+      <div class="stat-card"><div class="stat-icon gold">SHP</div><div><div class="stat-num gold" id="sShipped">--</div><div class="stat-lbl">Shipped</div></div></div>
+    </div>
+    <div id="panel-orders">
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">All Orders</div></div>
+        <table class="tbl">
+          <thead><tr><th>#ID</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th><th>Date</th><th>Update Status</th></tr></thead>
+          <tbody id="opsOrders"><tr><td colspan="7" class="text-c text-m">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <div id="panel-pending" style="display:none;">
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">Pending Orders</div><button class="panel-link" onclick="showPanel('orders')">← All Orders</button></div>
+        <table class="tbl">
+          <thead><tr><th>#ID</th><th>Customer</th><th>Items</th><th>Total</th><th>Date</th><th>Update Status</th></tr></thead>
+          <tbody id="opsPending"><tr><td colspan="6" class="text-c text-m">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+  <div id="toast"></div>
+  <script>
+    const API='http://localhost:8080',token=localStorage.getItem('sb_token'),user=JSON.parse(localStorage.getItem('sb_user')||'null');
+    if(!token||!user||user.role!=='OPERATIONS'){window.location.href='login.html';}
+    document.getElementById('opsName').textContent=user?.username||'Operations';
+    document.getElementById('avatarInitial').textContent=(user?.username||'O').charAt(0).toUpperCase();
+    function updateTime(){document.getElementById('topTime').textContent=new Date().toLocaleString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'});}
+    updateTime();setInterval(updateTime,60000);
+    function toast(msg,type){const t=document.getElementById('toast');t.textContent=msg;t.className='show '+(type||'success');setTimeout(()=>t.className='',3000);}
+    async function api(url,opts={}){const res=await fetch(API+url,{...opts,headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,...(opts.headers||{})},cache:'no-store'});if(!res.ok)throw new Error('HTTP '+res.status);if(res.status===204)return null;return res.json();}
+    function doLogout(){localStorage.removeItem('sb_token');localStorage.removeItem('sb_user');window.location.href='login.html';}
+    const PANELS=['orders','pending'];
+    function showPanel(name){PANELS.forEach(p=>{const el=document.getElementById('panel-'+p);if(el)el.style.display='none';});const t=document.getElementById('panel-'+name);if(t)t.style.display='block';if(name==='orders')loadOrders();if(name==='pending')loadPending();}
+    function orderRow(o, colspan=7) {
+      return `<tr>
+        <td><strong>#${o.id}</strong></td>
+        <td>${o.customerName || o.user?.username || '—'}</td>
+        <td>${o.items?.length || 0} item(s)</td>
+        <td style="color:var(--gold);font-weight:700;">Rs ${Number(o.totalAmount).toFixed(2)}</td>
+        <td><span class="badge ${o.status.toLowerCase()}">${o.status}</span></td>
+        <td style="color:var(--muted);font-size:0.78rem;">${new Date(o.createdAt || new Date()).toLocaleDateString()}</td>
+        <td>
+          <select class="status-sel" onchange="updateStatus(${o.id}, this.value)">
+            <option value="">Update...</option>
+            <option value="PENDING">Pending</option>
+            <option value="PACKED">Packed</option>
+            <option value="SHIPPED">Shipped</option>
+            <option value="DELIVERED">Delivered</option>
+            <option value="CANCELLED">Cancelled</option>
+          </select>
+        </td>
+      </tr>`;
+    }
+    async function loadOrders(){
+      const el=document.getElementById('opsOrders');
+      try{
+        const list=await api('/api/orders');
+        document.getElementById('sTotal').textContent=list?.length||0;
+        document.getElementById('sPending').textContent=list?.filter(o=>o.status==='PENDING').length||0;
+        document.getElementById('sPacked').textContent=list?.filter(o=>o.status==='PACKED').length||0;
+        document.getElementById('sShipped').textContent=list?.filter(o=>o.status==='SHIPPED').length||0;
+        if(!list?.length){el.innerHTML='<tr><td colspan="7" class="text-c text-m">No orders yet</td></tr>';return;}
+        el.innerHTML=list.map(o=>orderRow(o)).join('');
+      }catch{el.innerHTML='<tr><td colspan="7" class="text-c text-m">Failed to load</td></tr>';}
+    }
+    async function loadPending(){
+      const el=document.getElementById('opsPending');
+      try{
+        const list=await api('/api/orders');
+        const pending=(list||[]).filter(o=>o.status==='PENDING'||o.status==='PACKED');
+        if(!pending.length){el.innerHTML='<tr><td colspan="6" class="text-c text-m">No pending orders</td></tr>';return;}
+        el.innerHTML=pending.map(o=>`<tr>
+          <td><strong>#${o.id}</strong></td>
+          <td>${o.customerName || o.user?.username || '—'}</td>
+          <td>${o.items?.length || 0} item(s)</td>
+          <td style="color:var(--gold);font-weight:700;">Rs ${Number(o.totalAmount).toFixed(2)}</td>
+          <td style="color:var(--muted);font-size:0.78rem;">${new Date(o.createdAt || new Date()).toLocaleDateString()}</td>
+          <td>
+            <select class="status-sel" onchange="updateStatus(${o.id}, this.value)">
+              <option value="">Update...</option>
+              <option value="PENDING">Pending</option>
+              <option value="PACKED">Packed</option>
+              <option value="SHIPPED">Shipped</option>
+              <option value="DELIVERED">Delivered</option>
+              <option value="CANCELLED">Cancelled</option>
+            </select>
+          </td>
+        </tr>`).join('');
+      }catch{el.innerHTML='<tr><td colspan="6" class="text-c text-m">Failed to load</td></tr>';}
+    }
+    async function updateStatus(id,status){
+      if(!status)return;
+      try{await api('/api/orders/'+id+'/status',{method:'PUT',body:JSON.stringify({status})});toast('Order #'+id+' → '+status);loadOrders();}
+      catch{toast('Failed to update','error');}
+    }
+    loadOrders();
+  </script>
+<script src='theme.js'></script>
+</body>
+</html>
+

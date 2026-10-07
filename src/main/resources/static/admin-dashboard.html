@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard | Starlight Bookstore</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0e1a;
+      --card: rgba(255,255,255,0.04);
+      --border: rgba(255,255,255,0.08);
+      --gold: #d4a373;
+      --gold-dim: rgba(212,163,115,0.15);
+      --green: #22c55e;
+      --blue: #3b82f6;
+      --purple: #a855f7;
+      --pink: #ec4899;
+      --red: #ef4444;
+      --text: #e2e8f0;
+      --muted: #64748b;
+    }
+    body.light-mode {
+      --bg: #F8F9FA;
+      --card: rgba(255,255,255,0.85);
+      --border: rgba(0,0,0,0.1);
+      --text: #212529;
+      --muted: #6C757D;
+      background: #F8F9FA !important;
+    }
+    body.light-mode .sidebar {
+      background: rgba(255,255,255,0.9) !important;
+    }
+    body.light-mode .stat-card, body.light-mode .panel, body.light-mode .action-btn {
+      background: rgba(255,255,255,0.85) !important;
+      border-color: rgba(0,0,0,0.1) !important;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: linear-gradient(rgba(11, 14, 26, 0.75), rgba(11, 14, 26, 0.95)), url('/assets/admin-bg.jpg') no-repeat center center fixed; background-size: cover; color: var(--text); font-family: 'Inter', sans-serif; display: flex; min-height: 100vh; }
+
+    /* SIDEBAR */
+    .sidebar { width: 240px; background: rgba(11, 14, 26, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; bottom: 0; z-index: 100; padding: 1.5rem 0; }
+    .sidebar-logo { padding: 0 1.5rem 1.5rem; border-bottom: 1px solid var(--border); margin-bottom: 1rem; }
+    .sidebar-logo h1 { font-family: 'Outfit', sans-serif; font-size: 1.3rem; font-weight: 900; background: linear-gradient(135deg, #d4a373, #a66a32); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .sidebar-logo p { font-size: 0.72rem; color: var(--muted); margin-top: 0.2rem; }
+    .sidebar-section { padding: 0.5rem 0.75rem; }
+    .sidebar-label { font-size: 0.65rem; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.1em; padding: 0.3rem 0.5rem 0.5rem; }
+    .sidebar-link { display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 0.75rem; border-radius: 8px; text-decoration: none; color: #94a3b8; font-size: 0.88rem; font-weight: 500; transition: all 0.2s; margin-bottom: 0.15rem; cursor: pointer; border: none; background: none; width: 100%; text-align: left; }
+    .sidebar-link:hover { background: rgba(255,255,255,0.05); color: var(--text); }
+    .sidebar-link.active { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(212,163,115,0.2); }
+    .sidebar-footer { margin-top: auto; padding: 1rem; border-top: 1px solid var(--border); }
+    .admin-avatar { display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem; border-radius: 8px; background: rgba(255, 255, 255, 0.04); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+    .avatar-icon { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg,#d4a373,#a66a32); display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; color: #000; }
+    .avatar-name { font-size: 0.83rem; font-weight: 700; }
+    .avatar-role { font-size: 0.68rem; color: var(--gold); }
+    .sidebar-logout { display: block; margin-top: 0.6rem; text-align: center; padding: 0.45rem; border-radius: 6px; color: var(--red); cursor: pointer; font-size: 0.83rem; border: 1px solid rgba(239,68,68,0.25); text-decoration: none; transition: all 0.2s; background: none; width: 100%; }
+    .sidebar-logout:hover { background: rgba(239,68,68,0.1); }
+
+    /* MAIN */
+    .main { flex: 1; margin-left: 240px; padding: 2rem; }
+    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+    .page-title { font-family: 'Outfit', sans-serif; font-size: 1.9rem; font-weight: 900; }
+    .page-title span { background: linear-gradient(135deg,#d4a373,#a66a32); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .top-time { font-size: 0.82rem; color: var(--muted); }
+    .btn-gold { padding: 0.55rem 1.2rem; background: linear-gradient(135deg,#d4a373,#a66a32); color: #000; font-weight: 700; border-radius: 8px; text-decoration: none; font-size: 0.84rem; border: none; cursor: pointer; }
+
+    /* STATS */
+    .stats-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; margin-bottom: 2rem; }
+    .stat-card { padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border); background: rgba(255, 255, 255, 0.04); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); display: flex; align-items: center; gap: 0.85rem; position: relative; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s; }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+    .stat-icon { font-size: 1.6rem; width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.1rem; flex-shrink: 0; }
+    .stat-icon.gold { background: rgba(212,163,115,0.15); color: var(--gold); }
+    .stat-icon.green { background: rgba(34,197,94,0.12); color: var(--green); }
+    .stat-icon.blue { background: rgba(59,130,246,0.12); color: var(--blue); }
+    .stat-icon.purple { background: rgba(168,85,247,0.12); color: var(--purple); }
+    .stat-icon.pink { background: rgba(236,72,153,0.12); color: var(--pink); }
+    .stat-num { font-size: 1.7rem; font-weight: 800; line-height: 1; }
+    .stat-num.gold { color: var(--gold); }
+    .stat-num.green { color: var(--green); }
+    .stat-num.blue { color: var(--blue); }
+    .stat-num.purple { color: var(--purple); }
+    .stat-num.pink { color: var(--pink); }
+    .stat-lbl { font-size: 0.75rem; color: var(--muted); margin-top: 0.2rem; }
+
+    /* QUICK ACTIONS */
+    .actions-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.75rem; }
+    .action-btn { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; padding: 1.1rem 0.5rem; border-radius: 10px; cursor: pointer; text-decoration: none; color: var(--text); text-align: center; border: 1px solid var(--border); background: rgba(255, 255, 255, 0.04); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); transition: all 0.2s; font-size: 0.78rem; font-weight: 600; }
+    .action-btn:hover { border-color: var(--gold); color: var(--gold); background: var(--gold-dim); transform: translateY(-1px); }
+    .action-icon { width: 38px; height: 38px; border-radius: 8px; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: 700; margin-bottom: 0.2rem; }
+
+    /* PANEL */
+    .panel { background: rgba(255, 255, 255, 0.04); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+    .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; }
+    .panel-title { font-weight: 700; font-size: 0.97rem; }
+    .panel-link { font-size: 0.78rem; color: var(--gold); text-decoration: none; background: none; border: none; cursor: pointer; }
+    .panel-link:hover { text-decoration: underline; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+
+    /* TABLE */
+    .tbl { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+    .tbl th { text-align: left; padding: 0.45rem 0.7rem; color: #475569; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 1px solid var(--border); }
+    .tbl td { padding: 0.7rem 0.7rem; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; }
+    .tbl tr:last-child td { border-bottom: none; }
+    .tbl tr:hover td { background: rgba(255,255,255,0.02); }
+    .text-c { text-align: center; }
+    .text-m { color: var(--muted); font-size: 0.83rem; }
+
+    /* BADGES */
+    .badge { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.03em; }
+    .badge.pending { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
+    .badge.packed { background: rgba(59,130,246,0.15); color: #3b82f6; border: 1px solid rgba(59,130,246,0.3); }
+    .badge.shipped { background: rgba(168,85,247,0.15); color: #a855f7; border: 1px solid rgba(168,85,247,0.3); }
+    .badge.delivered { background: rgba(34,197,94,0.15); color: #22c55e; border: 1px solid rgba(34,197,94,0.3); }
+    .badge.cancelled { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+    .badge.open { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
+    .badge.in_progress { background: rgba(59,130,246,0.15); color: #3b82f6; border: 1px solid rgba(59,130,246,0.3); }
+    .badge.resolved { background: rgba(34,197,94,0.15); color: #22c55e; border: 1px solid rgba(34,197,94,0.3); }
+    .badge.customer { background: rgba(212,163,115,0.15); color: var(--gold); border: 1px solid rgba(212,163,115,0.2); }
+    .badge.admin { background: rgba(168,85,247,0.15); color: #a855f7; border: 1px solid rgba(168,85,247,0.3); }
+    .badge.view { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
+    .badge.add { background: rgba(34,197,94,0.15); color: #22c55e; border: 1px solid rgba(34,197,94,0.3); }
+    .badge.delete { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+    .badge.update { background: rgba(59,130,246,0.15); color: #3b82f6; border: 1px solid rgba(59,130,246,0.3); }
+
+    /* STOCK BARS */
+    .stock-bar { height: 5px; border-radius: 3px; background: rgba(255,255,255,0.08); overflow: hidden; flex: 1; }
+    .stock-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
+    .stock-bar-fill.high { background: var(--green); }
+    .stock-bar-fill.mid { background: #f59e0b; }
+    .stock-bar-fill.low { background: var(--red); }
+
+    /* STATUS SELECT */
+    .status-sel { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 3px 6px; font-size: 0.74rem; cursor: pointer; }
+
+    /* FORM INPUTS */
+    .f-input { width: 100%; padding: 0.5rem 0.75rem; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text); border-radius: 6px; font-size: 0.87rem; }
+    .f-label { font-size: 0.77rem; color: #94a3b8; margin-bottom: 0.25rem; display: block; }
+    .f-row { display: flex; gap: 1rem; margin-bottom: 0.85rem; }
+    .f-col { flex: 1; }
+
+    /* FIX FOR SELECT OPTIONS ON WINDOWS/CHROME (WHITE ON WHITE) */
+    select.f-input option, select.status-sel option {
+      background: #141419; /* Dark background */
+      color: #f8fafc;      /* White text */
+    }
+
+    /* TOAST */
+    #toast { position: fixed; bottom: 2rem; right: 2rem; padding: 0.9rem 1.4rem; border-radius: 10px; font-weight: 600; z-index: 9999; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+    #toast.show { opacity: 1; }
+    #toast.success { background: #22c55e; color: #fff; }
+    #toast.error { background: #ef4444; color: #fff; }
+
+    /* DELETE BTN */
+    .btn-del { padding: 3px 10px; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; border-radius: 6px; cursor: pointer; font-size: 0.74rem; }
+.btn-del:hover { background: rgba(239,68,68,0.2); }
+    
+    body.light-mode { background: linear-gradient(rgba(248, 249, 250, 0.85), rgba(248, 249, 250, 0.95)), url('/assets/admin-bg.jpg') no-repeat center center fixed; background-size: cover; color: #212529; }
+    body.light-mode .sidebar { background: rgba(255, 255, 255, 0.75); border-right: 1px solid rgba(212, 163, 115, 0.3); }
+    body.light-mode .sidebar-link { color: #4b5563; }
+    body.light-mode .sidebar-link:hover { background: rgba(0,0,0,0.05); color: #000; }
+    body.light-mode .sidebar-link.active { background: rgba(212, 163, 115, 0.15); color: var(--gold); border-color: rgba(212, 163, 115, 0.3); }
+    body.light-mode .panel, body.light-mode .stat-card, body.light-mode .action-btn, body.light-mode .admin-avatar { background: rgba(255, 255, 255, 0.85); border-color: rgba(212, 163, 115, 0.3); color: #212529; }
+    body.light-mode .action-btn:hover { background: rgba(212, 163, 115, 0.15); }
+    body.light-mode .tbl th { color: #4b5563; border-bottom-color: rgba(212, 163, 115, 0.3); }
+    body.light-mode .tbl td { border-bottom-color: rgba(0,0,0,0.05); }
+    body.light-mode .tbl tr:hover td { background: rgba(0,0,0,0.02); }
+    body.light-mode .f-input, body.light-mode .status-sel { background: rgba(255,255,255,0.9); color: #000; border-color: rgba(212, 163, 115, 0.4); }
+  </style>
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <h1>Starlight</h1>
+      <p>Admin Control Panel</p>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Main</div>
+      <button class="sidebar-link active" onclick="showPanel('overview')">Dashboard</button>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Catalog</div>
+      <a href="admin-books.html" class="sidebar-link">Manage Books</a>
+      <a href="admin-add-book.html" class="sidebar-link">Add New Book</a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Operations</div>
+      <button class="sidebar-link" onclick="showPanel('orders')">All Orders</button>
+      <button class="sidebar-link" onclick="showPanel('users')">Customers</button>
+      <button class="sidebar-link" onclick="showPanel('support')">Support Tickets</button>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">System</div>
+      <button class="sidebar-link" onclick="showPanel('audit')">Audit Logs</button>
+      <button class="sidebar-link" onclick="showPanel('management')">User Management</button>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="admin-avatar">
+        <div class="avatar-icon" id="avatarInitial">A</div>
+        <div>
+          <div class="avatar-name" id="adminName">Admin</div>
+          <div class="avatar-role">ADMINISTRATOR</div>
+        </div>
+      </div>
+      <button class="sidebar-logout" onclick="doLogout()">Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <!-- TOP BAR -->
+    <div class="top-bar">
+      <div>
+        <div class="page-title">Admin <span>Dashboard</span></div>
+        <div class="top-time" id="topTime"></div>
+      </div>
+      <div style="display: flex; gap: 1rem; align-items: center;">
+        <button class="btn-gold" id="themeToggle" onclick="toggleTheme()" style="display:flex;align-items:center;gap:0.5rem;"><span id="themeIcon">☀️</span> Light Mode</button>
+        <a href="admin-add-book.html" class="btn-gold">+ Add Book</a>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-icon gold">BK</div>
+        <div><div class="stat-num gold" id="sBooks">--</div><div class="stat-lbl">Total Books</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green">ORD</div>
+        <div><div class="stat-num green" id="sOrders">--</div><div class="stat-lbl">Total Orders</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon blue">Rs</div>
+        <div><div class="stat-num blue" id="sRevenue">--</div><div class="stat-lbl">Total Revenue</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon purple">PND</div>
+        <div><div class="stat-num purple" id="sPending">--</div><div class="stat-lbl">Pending Orders</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon pink">TKT</div>
+        <div><div class="stat-num pink" id="sTickets">--</div><div class="stat-lbl">Open Tickets</div></div>
+      </div>
+    </div>
+
+    <!-- QUICK ACTIONS -->
+    <div class="panel">
+      <div class="panel-header"><div class="panel-title">Quick Actions</div></div>
+      <div class="actions-grid">
+        <a href="admin-add-book.html" class="action-btn"><div class="action-icon">+</div>Add Book</a>
+        <button class="action-btn" onclick="showPanel('orders')"><div class="action-icon">ORD</div>All Orders</button>
+        <button class="action-btn" onclick="showPanel('users')"><div class="action-icon">USR</div>Customers</button>
+        <button class="action-btn" onclick="showPanel('support')"><div class="action-icon">TKT</div>Support</button>
+        <button class="action-btn" onclick="showPanel('audit')"><div class="action-icon">LOG</div>Audit Logs</button>
+        <button class="action-btn" onclick="showPanel('management')"><div class="action-icon">MGT</div>User Mgmt</button>
+      </div>
+    </div>
+
+    <!-- OVERVIEW PANEL -->
+    <div id="panel-overview">
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Recent Orders</div>
+            <button class="panel-link" onclick="showPanel('orders')">View All &rarr;</button>
+          </div>
+          <table class="tbl">
+            <thead><tr><th>#</th><th>Customer</th><th>Total</th><th>Status</th></tr></thead>
+            <tbody id="recentOrders"><tr><td colspan="4" class="text-c text-m">Loading...</td></tr></tbody>
+          </table>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Inventory Levels</div>
+            <a href="admin-books.html" class="panel-link">Manage Books &rarr;</a>
+          </div>
+          <div id="stockList"><p class="text-m text-c">Loading...</p></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Open Support Tickets</div>
+          <button class="panel-link" onclick="showPanel('support')">View All &rarr;</button>
+        </div>
+        <table class="tbl">
+          <thead><tr><th>#</th><th>Customer</th><th>Category</th><th>Status</th><th>Date</th></tr></thead>
+          <tbody id="openTickets"><tr><td colspan="5" class="text-c text-m">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ALL ORDERS PANEL -->
+    <div id="panel-orders" style="display:none;">
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">All Orders</div>
+          <button class="panel-link" onclick="showPanel('overview')">&larr; Back</button>
+        </div>
+        <table class="tbl">
+          <thead><tr><th>#ID</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th><th>Date</th><th>Receipt</th><th>Update</th></tr></thead>
+          <tbody id="allOrders"><tr><td colspan="8" class="text-c text-m">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CUSTOMERS PANEL -->
+    <div id="panel-users" style="display:none;">
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">All Customers</div>
+          <button class="panel-link" onclick="showPanel('overview')">&larr; Back</button>
+        </div>
+        <table class="tbl">
+          <thead><tr><th>No.</th><th>Username</th><th>Email</th><th>Role</th><th>Action</th></tr></thead>
+          <tbody id="allUsers"><tr><td colspan="5" class="text-c text-m">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SUPPORT PANEL -->
+    <div id="panel-support" style="display:none;">
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">All Support Tickets</div>
+          <button class="panel-link" onclick="showPanel('overview')">&larr; Back</button>
+        </div>
+        <table class="tbl">
+          <thead><tr><th>#</th><th>Customer</th><th>Category</th><th>Description</th><th>Status</th><th>Date</th><th>Update</th></tr></thead>
+          <tbody id="allTickets"><tr><td colspan="7" class="text-c text-m">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- AUDIT PANEL -->
+    <div id="panel-audit" style="display:none;">
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Audit Logs</div>
+          <button class="panel-link" onclick="showPanel('overview')">&larr; Back</button>
+        </div>
+        <table class="tbl">
+          <thead><tr><th>Time</th><th>Admin</th><th>Action</th><th>Entity</th><th>Details</th></tr></thead>
+          <tbody id="auditLogs"><tr><td colspan="5" class="text-c text-m">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- USER MANAGEMENT PANEL -->
+    <div id="panel-management" style="display:none;">
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-header"><div class="panel-title">Add New User</div></div>
+          <form onsubmit="adminAddUser(event)">
+            <div class="f-row">
+              <div class="f-col"><label class="f-label">Username</label><input class="f-input" id="uName" required></div>
+              <div class="f-col"><label class="f-label">Email</label><input class="f-input" type="email" id="uEmail" required></div>
+            </div>
+            <div class="f-row">
+              <div class="f-col"><label class="f-label">Password</label><input class="f-input" type="password" id="uPass" required></div>
+              <div class="f-col"><label class="f-label">Role</label>
+                <select class="f-input" id="uRole">
+                  <option value="CUSTOMER">Customer</option>
+                  <option value="OPERATIONS">Store Operations Manager</option>
+                  <option value="SUPPORT">Customer Service Supervisor</option>
+                  <option value="INVENTORY">Inventory & Purchasing Officer</option>
+                  <option value="FINANCE">Finance & Accounts Manager</option>
+                    <option value="OWNER">Manager (Owner)</option>
+                </select>
+              </div>
+            </div>
+            <button type="submit" class="btn-gold" style="width:100%;padding:0.65rem;margin-top:0.5rem;">Create User</button>
+          </form>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">User Management</div>
+            <button class="panel-link" onclick="showPanel('overview')">&larr; Back</button>
+          </div>
+          <table class="tbl">
+            <thead><tr><th>No.</th><th>Username</th><th>Role</th><th>Action</th></tr></thead>
+            <tbody id="mgmtUsers"><tr><td colspan="4" class="text-c text-m">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="deleteModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.8);z-index:10000;align-items:center;justify-content:center;">
+    <div style="background:rgba(255,255,255,0.04);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.08);padding:2rem;border-radius:12px;text-align:center;max-width:400px;width:90%;">
+      <h2 style="color:#ef4444;margin-bottom:0.5rem;font-family:'Outfit',sans-serif;">Confirm Delete</h2>
+      <p style="margin-bottom:1.5rem;color:var(--text);font-size:0.9rem;">Delete this user? This cannot be undone.</p>
+      <div style="display:flex;gap:1rem;justify-content:center;">
+        <button onclick="closeDeleteModal()" style="padding:0.6rem 1.2rem;background:transparent;border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:8px;cursor:pointer;">Cancel</button>
+        <button onclick="confirmDelete()" style="padding:0.6rem 1.2rem;background:#ef4444;border:none;color:#fff;border-radius:8px;cursor:pointer;">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <script>
+    const API   = 'http://localhost:8080';
+    const token = localStorage.getItem('sb_token');
+    const user  = JSON.parse(localStorage.getItem('sb_user') || 'null');
+
+    if (!token || !user || user.role !== 'ADMIN') {
+      window.location.href = 'login.html';
+    }
+
+    document.getElementById('adminName').textContent = user ? user.username : 'Admin';
+    document.getElementById('avatarInitial').textContent = user ? user.username.charAt(0).toUpperCase() : 'A';
+
+    function updateTime() {
+      document.getElementById('topTime').textContent =
+        new Date().toLocaleString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit' });
+    }
+    updateTime();
+    setInterval(updateTime, 60000);
+
+    function toast(msg, type) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'show ' + (type || 'success');
+      setTimeout(() => { t.className = ''; }, 3000);
+    }
+
+    async function api(url, opts = {}) {
+      const res = await fetch(API + url, {
+        ...opts,
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token, ...(opts.headers || {}) },
+        cache: 'no-store'
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      if (res.status === 204) return null;
+      return res.json();
+    }
+    function doLogout() {
+      localStorage.removeItem('sb_token');
+      localStorage.removeItem('sb_user');
+      window.location.href = 'login.html';
+    }
+    
+    function toggleTheme() {
+      var body = document.body;
+      var btn = document.getElementById('themeToggle');
+      var icon = document.getElementById('themeIcon');
+      body.classList.toggle('light-mode');
+      
+      if(body.classList.contains('light-mode')) {
+        icon.textContent = '☀️';
+        btn.lastChild.textContent = ' Light Mode';
+      } else {
+        icon.textContent = '🌙';
+        btn.lastChild.textContent = ' Night Mode';
+      }
+    }
+
+    const PANELS = ['overview','orders','users','support','audit','management'];
+
+    function showPanel(name) {
+      PANELS.forEach(p => {
+        const el = document.getElementById('panel-' + p);
+        if (el) el.style.display = 'none';
+      });
+      document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+      const target = document.getElementById('panel-' + name);
+      if (target) target.style.display = 'block';
+
+      if (name === 'overview')    { loadRecentOrders(); loadStock(); loadOpenTickets(); }
+      if (name === 'orders')      loadAllOrders();
+      if (name === 'users')       loadAllUsers();
+      if (name === 'support')     loadAllTickets();
+      if (name === 'audit')       loadAuditLogs();
+      if (name === 'management')  loadMgmtUsers();
+    }
+
+    async function loadStats() {
+      try {
+        const s = await api('/api/dashboard/stats');
+        document.getElementById('sBooks').textContent   = s.totalBooks   ?? 0;
+        document.getElementById('sOrders').textContent  = s.totalOrders  ?? 0;
+        document.getElementById('sRevenue').textContent = 'Rs ' + Number(s.totalRevenue ?? 0).toFixed(0);
+        document.getElementById('sPending').textContent = s.pendingOrders ?? 0;
+        document.getElementById('sTickets').textContent = s.openTickets  ?? 0;
+      } catch (e) {
+        ['sBooks','sOrders','sPending','sTickets'].forEach(id => document.getElementById(id).textContent = '0');
+        document.getElementById('sRevenue').textContent = 'Rs 0';
+      }
+    }
+
+    async function loadRecentOrders() {
+      const el = document.getElementById('recentOrders');
+      try {
+        const list = await api('/api/orders');
+        if (!list || !list.length) { el.innerHTML = '<tr><td colspan="4" class="text-c text-m">No orders yet</td></tr>'; return; }
+        el.innerHTML = list.slice(0,6).map(o => `
+          <tr>
+            <td><strong>#${o.id}</strong></td>
+            <td>${o.customerName || o.user?.username || 'â€”'}</td>
+            <td style="color:var(--gold);font-weight:700;">Rs ${Number(o.totalAmount).toFixed(2)}</td>
+            <td><span class="badge ${o.status.toLowerCase()}">${o.status}</span></td>
+          </tr>`).join('');
+      } catch (e) { el.innerHTML = '<tr><td colspan="4" class="text-c text-m">Failed to load</td></tr>'; }
+    }
+
+    async function loadStock() {
+      const el = document.getElementById('stockList');
+      try {
+        const books = await api('/api/books');
+        if (!books || !books.length) { el.innerHTML = '<p class="text-m text-c">No books yet</p>'; return; }
+        const sorted = [...books].sort((a,b) => a.stock - b.stock).slice(0,6);
+        const maxStock = Math.max(...books.map(b => b.stock), 1);
+        el.innerHTML = sorted.map(b => {
+          const pct = Math.min(100, Math.round((b.stock / maxStock) * 100));
+          const cls = b.stock === 0 ? 'low' : b.stock <= 10 ? 'mid' : 'high';
+          const col = cls === 'low' ? 'var(--red)' : cls === 'mid' ? '#f59e0b' : 'var(--green)';
+          return `<div style="margin-bottom:0.7rem;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:0.25rem;">
+              <span style="font-size:0.82rem;font-weight:600;">${b.title}</span>
+              <span style="font-size:0.78rem;color:${col};font-weight:700;">${b.stock} left</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.5rem;">
+              <div class="stock-bar"><div class="stock-bar-fill ${cls}" style="width:${pct}%"></div></div>
+            </div>
+          </div>`;
+        }).join('');
+      } catch (e) { el.innerHTML = '<p class="text-m text-c">Failed to load</p>'; }
+    }
+
+    async function loadOpenTickets() {
+      const el = document.getElementById('openTickets');
+      try {
+        const list = await api('/api/support');
+        const open = (list || []).filter(t => t.status === 'OPEN' || t.status === 'IN_PROGRESS');
+        if (!open.length) { el.innerHTML = '<tr><td colspan="5" class="text-c text-m">No open tickets</td></tr>'; return; }
+        el.innerHTML = open.slice(0,6).map(t => `
+          <tr>
+            <td><strong>#${t.ticketId || t.id}</strong></td>
+            <td>${t.customer?.username || t.customerName || 'â€”'}</td>
+            <td>${t.issueCategory || 'â€”'}</td>
+            <td><span class="badge ${(t.status||'').toLowerCase()}">${t.status}</span></td>
+            <td style="color:var(--muted);font-size:0.78rem;">${new Date(t.createdDate).toLocaleDateString()}</td>
+          </tr>`).join('');
+      } catch (e) { el.innerHTML = '<tr><td colspan="5" class="text-c text-m">Failed to load</td></tr>'; }
+    }
+
+    async function loadAllOrders() {
+      const el = document.getElementById('allOrders');
+      try {
+        const list = await api('/api/orders');
+        if (!list || !list.length) { el.innerHTML = '<tr><td colspan="8" class="text-c text-m">No orders yet</td></tr>'; return; }
+        el.innerHTML = list.map(o => `
+          <tr>
+            <td><strong>#${o.id}</strong></td>
+            <td>${o.customerName || o.user?.username || 'â€”'}</td>
+            <td>${o.items?.length || 0} item(s)</td>
+            <td style="color:var(--gold);font-weight:700;">Rs ${Number(o.totalAmount).toFixed(2)}</td>
+            <td><span class="badge ${o.status.toLowerCase()}">${o.status}</span></td>
+            <td style="color:var(--muted);font-size:0.78rem;">${new Date(o.createdAt).toLocaleDateString()}</td>
+            <td>${o.paymentReceipt ? `<a href="/uploads/receipts/${o.paymentReceipt}" target="_blank" style="color:var(--gold);text-decoration:underline;">View</a>` : 'â€”'}</td>
+            <td>
+              <select class="status-sel" onchange="updateOrderStatus(${o.id}, this.value)">
+                <option value="">Update...</option>
+                <option value="PENDING">Pending</option>
+                <option value="PACKED">Packed</option>
+                <option value="SHIPPED">Shipped</option>
+                <option value="DELIVERED">Delivered</option>
+                <option value="CANCELLED">Cancelled</option>
+              </select>
+            </td>
+          </tr>`).join('');
+      } catch (e) { el.innerHTML = '<tr><td colspan="8" class="text-c text-m">Failed to load</td></tr>'; }
+    }
+
+    async function updateOrderStatus(id, status) {
+      if (!status) return;
+      try {
+        await api('/api/orders/' + id + '/status', { method:'PUT', body: JSON.stringify({ status }) });
+        toast('Order #' + id + ' updated to ' + status);
+        loadAllOrders(); loadStats();
+      } catch (e) { toast('Failed to update order', 'error'); }
+    }
+
+    async function loadAllUsers() {
+      const el = document.getElementById('allUsers');
+      try {
+        const list = await api('/api/admin/users');
+        if (!list || !list.length) { el.innerHTML = '<tr><td colspan="5" class="text-c text-m">No users found</td></tr>'; return; }
+        el.innerHTML = list.map((u, index) => `
+          <tr>
+            <td><strong>${index + 1}</strong></td>
+            <td>${u.username}</td>
+            <td style="color:var(--muted);">${u.email || 'â€”'}</td>
+            <td><span class="badge ${u.role.toLowerCase()}">${u.role}</span></td>
+            <td>${u.username !== 'admin' ? `<button class="btn-del" onclick="deleteUser(${u.id})">Delete</button>` : '<span class="text-m">Protected</span>'}</td>
+          </tr>`).join('');
+      } catch (e) { el.innerHTML = '<tr><td colspan="5" class="text-c text-m">Failed to load</td></tr>'; }
+    }
+
+    let userToDelete = null;
+    let reloadType = null;
+
+    function openDeleteModal(id, type) {
+      userToDelete = id;
+      reloadType = type;
+      const modal = document.getElementById('deleteModal');
+      modal.style.display = 'flex';
+    }
+
+    function closeDeleteModal() {
+      userToDelete = null;
+      reloadType = null;
+      document.getElementById('deleteModal').style.display = 'none';
+    }
+
+    async function confirmDelete() {
+      if (!userToDelete) return;
+      const id = userToDelete;
+      const type = reloadType;
+      closeDeleteModal();
+      try { 
+        await api('/api/admin/users/' + id, { method:'DELETE' }); 
+        toast('User deleted'); 
+        if (type === 'mgmt') loadMgmtUsers(); 
+        else loadAllUsers(); 
+      }
+      catch (e) { toast('Failed', 'error'); }
+    }
+
+    function deleteUser(id) {
+      openDeleteModal(id, 'all');
+    }
+
+    async function loadAllTickets() {
+      const el = document.getElementById('allTickets');
+      try {
+        const list = await api('/api/support');
+        if (!list || !list.length) { el.innerHTML = '<tr><td colspan="7" class="text-c text-m">No tickets</td></tr>'; return; }
+        el.innerHTML = list.map(t => `
+          <tr>
+            <td><strong>#${t.ticketId || t.id}</strong></td>
+            <td>${t.customer?.username || t.customerName || 'â€”'}</td>
+            <td>${t.issueCategory || 'â€”'}</td>
+            <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#94a3b8;">${t.description || 'â€”'}</td>
+            <td><span class="badge ${(t.status||'').toLowerCase()}">${t.status}</span></td>
+            <td style="color:var(--muted);font-size:0.78rem;">${new Date(t.createdDate).toLocaleDateString()}</td>
+            <td>
+              <select class="status-sel" onchange="updateTicketStatus(${t.ticketId || t.id}, this.value)">
+                <option value="">Update...</option>
+                <option value="OPEN">Open</option>
+                <option value="IN_PROGRESS">In Progress</option>
+                <option value="RESOLVED">Resolved</option>
+              </select>
+            </td>
+          </tr>`).join('');
+      } catch (e) { el.innerHTML = '<tr><td colspan="7" class="text-c text-m">Failed to load</td></tr>'; }
+    }
+
+    async function updateTicketStatus(id, status) {
+      if (!status) return;
+      try {
+        await api('/api/support/' + id + '/status', { method:'PUT', body: JSON.stringify({ status }) });
+        toast('Ticket updated'); loadAllTickets(); loadStats();
+      } catch (e) { toast('Failed', 'error'); }
+    }
+
+    async function loadAuditLogs() {
+      const el = document.getElementById('auditLogs');
+      try {
+        const list = await api('/api/admin/logs');
+        if (!list || !list.length) { el.innerHTML = '<tr><td colspan="5" class="text-c text-m">No logs</td></tr>'; return; }
+        el.innerHTML = list.map(l => `
+          <tr>
+            <td style="color:var(--muted);font-size:0.78rem;">${new Date(l.timestamp).toLocaleString()}</td>
+            <td style="font-weight:600;">${l.adminUsername}</td>
+            <td><span class="badge ${(l.actionType||'').toLowerCase()}">${l.actionType}</span></td>
+            <td>${l.entityName}</td>
+            <td style="color:#94a3b8;">${l.details}</td>
+          </tr>`).join('');
+      } catch (e) { el.innerHTML = '<tr><td colspan="5" class="text-c text-m">Failed to load</td></tr>'; }
+    }
+
+    async function loadMgmtUsers() {
+      const el = document.getElementById('mgmtUsers');
+      try {
+        const list = await api('/api/admin/users');
+        if (!list || !list.length) { el.innerHTML = '<tr><td colspan="4" class="text-c text-m">No users</td></tr>'; return; }
+        el.innerHTML = list.map((u, index) => `
+          <tr>
+            <td><strong>${index + 1}</strong></td>
+            <td>${u.username}</td>
+            <td><span class="badge ${u.role.toLowerCase()}">${u.role}</span></td>
+            <td>${u.username !== 'admin' ? `<button class="btn-del" onclick="deleteMgmtUser(${u.id})">Delete</button>` : '<span class="text-m">Protected</span>'}</td>
+          </tr>`).join('');
+      } catch (e) { el.innerHTML = '<tr><td colspan="4" class="text-c text-m">Failed to load</td></tr>'; }
+    }
+
+    function deleteMgmtUser(id) {
+      openDeleteModal(id, 'mgmt');
+    }
+
+    async function adminAddUser(e) {
+      e.preventDefault();
+      try {
+        await api('/api/admin/users', { method:'POST', body: JSON.stringify({
+          username: document.getElementById('uName').value,
+          email:    document.getElementById('uEmail').value,
+          password: document.getElementById('uPass').value,
+          role:     document.getElementById('uRole').value
+        })});
+        e.target.reset();
+        toast('User created!');
+        loadMgmtUsers();
+      } catch (e) { toast('Failed to create user', 'error'); }
+    }
+
+    // INIT
+    loadStats();
+    loadRecentOrders();
+    loadStock();
+    loadOpenTickets();
+  </script>
+<script src='theme.js'></script>
+</body>
+</html>
+
+
+
+

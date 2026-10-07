@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Inventory Dashboard - Starlight</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Outfit:wght@400;700;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="admin-styles.css"/>
+<style>
+  body.admin-body {
+    background: linear-gradient(rgba(11, 12, 16, 0.75), rgba(11, 12, 16, 0.95)), url('/assets/inventory-bg.jpg') no-repeat center center fixed !important;
+    background-size: cover !important;
+  }
+  .sidebar {
+    background: rgba(11, 12, 16, 0.65) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  .panel, .stat-card {
+    background: rgba(11, 12, 16, 0.6) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+</style>
+</head>
+<body class="admin-body">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><span>&#x1F4E6;</span><span>Inventory</span></div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Books & Stock</div>
+      <button class="sidebar-link active" onclick="showPanel('books')">All Books</button>
+      <button class="sidebar-link" onclick="showPanel('lowstock')">Low Stock</button>
+      <button class="sidebar-link" onclick="showPanel('addbook')">Add New Book</button>
+    </div>
+    <div class="sidebar-footer">
+      <div class="admin-avatar">
+        <div class="avatar-icon" id="avatarInitial">IV</div>
+        <div><div class="avatar-name" id="invName">Inventory</div><div class="avatar-role">INVENTORY OFFICER</div></div>
+      </div>
+      <button class="sidebar-logout" onclick="doLogout()">Sign Out</button>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="top-bar">
+      <div><div class="page-title">Inventory &amp; Purchasing <span>Officer</span></div><div class="top-time" id="topTime"></div></div>
+      <button class="btn-gold" onclick="showPanel('addbook')">+ Add Book</button>
+    </div>
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-icon blue">BK</div><div><div class="stat-num blue" id="sTotal">--</div><div class="stat-lbl">Total Books</div></div></div>
+      <div class="stat-card"><div class="stat-icon gold">STK</div><div><div class="stat-num gold" id="sTotalStock">--</div><div class="stat-lbl">Total Stock</div></div></div>
+      <div class="stat-card"><div class="stat-icon red" style="--red:#ef4444;">LOW</div><div><div class="stat-num" style="color:#ef4444;" id="sLow">--</div><div class="stat-lbl">Low Stock (&le;5)</div></div></div>
+      <div class="stat-card"><div class="stat-icon pink">OUT</div><div><div class="stat-num pink" id="sOut">--</div><div class="stat-lbl">Out of Stock</div></div></div>
+    </div>
+    <div id="panel-books">
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">All Books</div></div>
+        <table class="tbl">
+          <thead><tr><th>#</th><th>Cover</th><th>Title</th><th>Author</th><th>Price</th><th>Stock</th><th>Genre</th><th>Actions</th></tr></thead>
+          <tbody id="invBooks"><tr><td colspan="8" class="text-c text-m">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <div id="panel-lowstock" style="display:none;">
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">Low Stock Alert (&le; 5 units)</div><button class="panel-link" onclick="showPanel('books')">&larr; All Books</button></div>
+        <table class="tbl">
+          <thead><tr><th>#</th><th>Title</th><th>Author</th><th>Stock</th><th>Actions</th></tr></thead>
+          <tbody id="invLow"><tr><td colspan="5" class="text-c text-m">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <div id="panel-addbook" style="display:none;">
+      <div class="panel" style="max-width:600px;">
+        <div class="panel-header"><div class="panel-title">Add New Book</div><button class="panel-link" onclick="showPanel('books')">&larr; Back</button></div>
+        <form onsubmit="addBook(event)" enctype="multipart/form-data">
+          <div class="f-row">
+            <div class="f-col"><label class="f-label">Title *</label><input class="f-input" id="bTitle" required></div>
+            <div class="f-col"><label class="f-label">Author *</label><input class="f-input" id="bAuthor" required></div>
+          </div>
+          <div class="f-row">
+            <div class="f-col"><label class="f-label">Price (Rs) *</label><input class="f-input" type="number" step="0.01" id="bPrice" required></div>
+            <div class="f-col"><label class="f-label">Stock *</label><input class="f-input" type="number" id="bStock" required></div>
+          </div>
+          <div class="f-row">
+            <div class="f-col"><label class="f-label">Genre</label><input class="f-input" id="bGenre"></div>
+            <div class="f-col"><label class="f-label">ISBN</label><input class="f-input" id="bIsbn"></div>
+          </div>
+          <div class="f-row">
+            <div class="f-col"><label class="f-label">Description</label><textarea class="f-input" id="bDesc" rows="3"></textarea></div>
+          </div>
+          <div class="f-row">
+            <div class="f-col"><label class="f-label">Cover Image</label><input class="f-input" type="file" id="bCover" accept="image/*"></div>
+          </div>
+          <button type="submit" class="btn-gold" style="width:100%;padding:0.75rem;margin-top:1rem;">Add Book</button>
+        </form>
+      </div>
+    </div>
+    <!-- Edit Modal -->
+    <div id="editModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.8);z-index:1000;justify-content:center;align-items:center;">
+      <div class="panel" style="max-width:500px;width:90%;max-height:90vh;overflow-y:auto;">
+        <div class="panel-header"><div class="panel-title">Edit Book</div><button class="panel-link" onclick="closeEdit()">&#x2715; Close</button></div>
+        <form onsubmit="saveEdit(event)">
+          <input type="hidden" id="editId">
+          <div class="f-row">
+            <div class="f-col"><label class="f-label">Title</label><input class="f-input" id="editTitle"></div>
+            <div class="f-col"><label class="f-label">Author</label><input class="f-input" id="editAuthor"></div>
+          </div>
+          <div class="f-row">
+            <div class="f-col"><label class="f-label">Price (Rs)</label><input class="f-input" type="number" step="0.01" id="editPrice"></div>
+            <div class="f-col"><label class="f-label">Stock</label><input class="f-input" type="number" id="editStock"></div>
+          </div>
+          <div class="f-row">
+            <div class="f-col"><label class="f-label">Genre</label><input class="f-input" id="editGenre"></div>
+          </div>
+          <div class="f-row">
+            <div class="f-col"><label class="f-label">New Cover Image (optional)</label><input class="f-input" type="file" id="editCover" accept="image/*"></div>
+          </div>
+          <button type="submit" class="btn-gold" style="width:100%;padding:0.75rem;margin-top:1rem;">Save Changes</button>
+        </form>
+      </div>
+    </div>
+  </main>
+  <div id="toast"></div>
+  <script>
+    const API='http://localhost:8080',token=localStorage.getItem('sb_token'),user=JSON.parse(localStorage.getItem('sb_user')||'null');
+    if(!token||!user||user.role!=='INVENTORY'){window.location.href='login.html';}
+    document.getElementById('invName').textContent=user ? user.username : 'Inventory';
+    document.getElementById('avatarInitial').textContent=user ? user.username.charAt(0).toUpperCase() : 'I';
+    function updateTime(){document.getElementById('topTime').textContent=new Date().toLocaleString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'});}
+    updateTime();setInterval(updateTime,60000);
+    function toast(msg,type){var t=document.getElementById('toast');t.textContent=msg;t.className='show '+(type||'success');setTimeout(function(){t.className='';},3000);}
+    async function apiCall(url,opts){opts=opts||{};var headers=Object.assign({'Authorization':'Bearer '+token},opts.headers||{});if(!(opts.body instanceof FormData))headers['Content-Type']='application/json';var res=await fetch(API+url,Object.assign({},opts,{headers:headers,cache:'no-store'}));if(!res.ok)throw new Error('HTTP '+res.status);if(res.status===204)return null;return res.json();}
+    function doLogout(){localStorage.removeItem('sb_token');localStorage.removeItem('sb_user');window.location.href='login.html';}
+    var PANELS=['books','lowstock','addbook'];
+    function showPanel(name){PANELS.forEach(function(p){var el=document.getElementById('panel-'+p);if(el)el.style.display='none';});var t=document.getElementById('panel-'+name);if(t)t.style.display='block';if(name==='books')loadBooks();if(name==='lowstock')loadLowStock();}
+    async function loadBooks(){
+      var el=document.getElementById('invBooks');
+      try{
+        var list=await apiCall('/api/books'); window._invBooks = list;
+        document.getElementById('sTotal').textContent=list?list.length:0;
+        document.getElementById('sTotalStock').textContent=list?list.reduce(function(s,b){return s+b.stock;},0):0;
+        document.getElementById('sLow').textContent=list?list.filter(function(b){return b.stock>0&&b.stock<=5;}).length:0;
+        document.getElementById('sOut').textContent=list?list.filter(function(b){return b.stock===0;}).length:0;
+        if(!list||!list.length){el.innerHTML='<tr><td colspan="8" class="text-c text-m">No books</td></tr>';return;}
+        el.innerHTML=list.map(function(b){return '<tr><td><strong>#'+b.id+'</strong></td><td>'+(b.coverImage?'<img src="/uploads/covers/'+b.coverImage+'" style="width:40px;height:50px;object-fit:cover;border-radius:4px;">':'—')+'</td><td>'+b.title+'</td><td>'+b.author+'</td><td style="color:var(--gold);">Rs '+Number(b.price).toFixed(2)+'</td><td style="color:'+(b.stock===0?'var(--pink)':b.stock<=5?'#f59e0b':'var(--green)')+';">'+b.stock+'</td><td>'+(b.genre||'—')+'</td><td style="display:flex;gap:0.5rem;"><button class="btn-gold" style="padding:0.3rem 0.7rem;font-size:0.8rem;" onclick="openEdit('+b.id+')" >Edit</button><button class="btn-del" onclick="deleteBook('+b.id+')">Del</button></td></tr>';}).join('');
+      }catch(e){el.innerHTML='<tr><td colspan="8" class="text-c text-m">Failed to load</td></tr>';}
+    }
+    async function loadLowStock(){
+      var el=document.getElementById('invLow');
+      try{
+        var list=await apiCall('/api/books'); window._invBooks = list;
+        var low=list?list.filter(function(b){return b.stock<=5;}):[];
+        if(!low.length){el.innerHTML='<tr><td colspan="5" class="text-c text-m">No low stock books!</td></tr>';return;}
+        el.innerHTML=low.map(function(b){return '<tr><td><strong>#'+b.id+'</strong></td><td>'+b.title+'</td><td>'+b.author+'</td><td style="color:'+(b.stock===0?'var(--pink)':'#f59e0b')+';">'+b.stock+(b.stock===0?' (OUT)':'')+'</td><td><button class="btn-gold" style="padding:0.3rem 0.7rem;font-size:0.8rem;" onclick="openEdit('+b.id+')" >Update Stock</button></td></tr>';}).join('');
+      }catch(e){el.innerHTML='<tr><td colspan="5" class="text-c text-m">Failed to load</td></tr>';}
+    }
+    function openEdit(id){var b=window._invBooks.find(function(x){return x.id===id;});if(!b)return;
+      document.getElementById('editId').value=b.id;
+      document.getElementById('editTitle').value=b.title;
+      document.getElementById('editAuthor').value=b.author;
+      document.getElementById('editPrice').value=b.price;
+      document.getElementById('editStock').value=b.stock;
+      document.getElementById('editGenre').value=b.genre||'';
+      document.getElementById('editModal').style.display='flex';
+    }
+    function closeEdit(){document.getElementById('editModal').style.display='none';}
+    async function saveEdit(e){
+      e.preventDefault();
+      var id=document.getElementById('editId').value;
+      var coverFile=document.getElementById('editCover').files[0];
+      var coverImageName=null;
+      if(coverFile){
+        var fd=new FormData();fd.append('file',coverFile);
+        var upRes=await fetch(API+'/api/books/upload-cover',{method:'POST',headers:{'Authorization':'Bearer '+token},body:fd});
+        if(upRes.ok){var upData=await upRes.json();coverImageName=upData.fileName;}
+      }
+      var body={title:document.getElementById('editTitle').value,author:document.getElementById('editAuthor').value,price:parseFloat(document.getElementById('editPrice').value),stock:parseInt(document.getElementById('editStock').value),genre:document.getElementById('editGenre').value};
+      if(coverImageName)body.coverImage=coverImageName;
+      try{await apiCall('/api/books/'+id,{method:'PUT',body:JSON.stringify(body)});toast('Book updated!');closeEdit();loadBooks();}catch(e){toast('Failed to update','error');}
+    }
+    async function addBook(e){
+      e.preventDefault();
+      var coverFile=document.getElementById('bCover').files[0];
+      var coverImageName=null;
+      if(coverFile){
+        var fd=new FormData();fd.append('file',coverFile);
+        var upRes=await fetch(API+'/api/books/upload-cover',{method:'POST',headers:{'Authorization':'Bearer '+token},body:fd});
+        if(upRes.ok){var upData=await upRes.json();coverImageName=upData.fileName;}
+      }
+      var body={title:document.getElementById('bTitle').value,author:document.getElementById('bAuthor').value,price:parseFloat(document.getElementById('bPrice').value),stock:parseInt(document.getElementById('bStock').value),genre:document.getElementById('bGenre').value,isbn:document.getElementById('bIsbn').value,description:document.getElementById('bDesc').value,coverImage:coverImageName};
+      try{await apiCall('/api/books',{method:'POST',body:JSON.stringify(body)});toast('Book added!');e.target.reset();showPanel('books');}catch(e2){toast('Failed to add book','error');}
+    }
+    async function deleteBook(id){
+      if(!confirm('Delete this book?'))return;
+      try{await apiCall('/api/books/'+id,{method:'DELETE'});toast('Book deleted');loadBooks();}catch(e){toast('Failed to delete','error');}
+    }
+    loadBooks();
+  </script>
+<script src='theme.js'></script>
+</body>
+</html>
+

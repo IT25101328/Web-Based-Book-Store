@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Finance Dashboard - Starlight</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Outfit:wght@400;700;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="admin-styles.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  body.admin-body {
+    background: linear-gradient(rgba(11, 12, 16, 0.75), rgba(11, 12, 16, 0.95)), url('/assets/finance-bg.jpg') no-repeat center center fixed !important;
+    background-size: cover !important;
+  }
+  body.admin-body.light-mode {
+    background: #F8F9FA !important;
+  }
+  .sidebar {
+    background: rgba(11, 12, 16, 0.65) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  body.light-mode .sidebar {
+    background: rgba(255, 255, 255, 0.9) !important;
+  }
+  .panel, .stat-card {
+    background: rgba(11, 12, 16, 0.6) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  body.light-mode .panel, body.light-mode .stat-card {
+    background: rgba(255, 255, 255, 0.85) !important;
+  }
+</style>
+</head>
+<body class="admin-body">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><span>&#x1F4B0;</span><span>Finance</span></div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Finance</div>
+      <button class="sidebar-link active" onclick="showPanel('overview')">Financial Overview</button>
+      <button class="sidebar-link" onclick="showPanel('payments')">All Payments</button>
+      <button class="sidebar-link" onclick="showPanel('receipts')">Bank Receipts</button>
+      <button class="sidebar-link" onclick="showPanel('reports')">Create a Report</button>
+    </div>
+    <div class="sidebar-footer">
+      <div class="admin-avatar">
+        <div class="avatar-icon" id="avatarInitial">FM</div>
+        <div><div class="avatar-name" id="finName">Finance</div><div class="avatar-role">FINANCE MANAGER</div></div>
+      </div>
+      <button class="sidebar-logout" onclick="doLogout()">Sign Out</button>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="top-bar">
+      <div style="display:flex; justify-content:space-between; width:100%; align-items:flex-start;">
+        <div><div class="page-title">Finance &amp; Accounts <span>Manager</span></div><div class="top-time" id="topTime"></div></div>
+        <button class="btn-gold" id="themeToggle" onclick="toggleTheme()" style="display:flex;align-items:center;gap:0.5rem;padding:0.6rem 1.2rem;font-size:0.9rem;border:none;border-radius:6px;cursor:pointer;font-weight:600;"><span id="themeIcon">☀️</span> Light Mode</button>
+      </div>
+    </div>
+    <div id="panel-overview">
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-icon gold">Rs</div><div><div class="stat-num gold" id="fRevenue">--</div><div class="stat-lbl">Total Revenue</div></div></div>
+        <div class="stat-card"><div class="stat-icon green">ORD</div><div><div class="stat-num green" id="fOrders">--</div><div class="stat-lbl">Total Orders</div></div></div>
+        <div class="stat-card"><div class="stat-icon blue">COD</div><div><div class="stat-num blue" id="fCod">--</div><div class="stat-lbl">Cash on Delivery</div></div></div>
+        <div class="stat-card"><div class="stat-icon purple">CARD</div><div><div class="stat-num purple" id="fCard">--</div><div class="stat-lbl">Card Payments</div></div></div>
+        <div class="stat-card"><div class="stat-icon pink">BANK</div><div><div class="stat-num pink" id="fBank">--</div><div class="stat-lbl">Bank Deposits</div></div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">Recent Payments</div><button class="panel-link" onclick="showPanel('payments')">View All &rarr;</button></div>
+        <table class="tbl">
+          <thead><tr><th>#</th><th>Customer</th><th>Method</th><th>Total</th><th>Status</th><th>Date</th></tr></thead>
+          <tbody id="finRecent"><tr><td colspan="6" class="text-c text-m">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <div id="panel-payments" style="display:none;">
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">All Payments</div><button class="panel-link" onclick="showPanel('overview')">&larr; Back</button></div>
+        <table class="tbl">
+          <thead><tr><th>#</th><th>Customer</th><th>Email</th><th>Method</th><th>Items</th><th>Total</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+          <tbody id="finAll"><tr><td colspan="9" class="text-c text-m">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <div id="panel-receipts" style="display:none;">
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">Bank Deposit Receipts</div><button class="panel-link" onclick="showPanel('overview')">&larr; Back</button></div>
+        <table class="tbl">
+          <thead><tr><th>#</th><th>Customer</th><th>Total</th><th>Status</th><th>Date</th><th>Receipt</th></tr></thead>
+          <tbody id="finReceipts"><tr><td colspan="6" class="text-c text-m">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    
+    <div id="panel-reports" style="display:none;">
+      <div class="panel" style="max-width: 600px; margin: 0 auto;">
+        <div class="panel-header"><div class="panel-title">Generate Financial Report</div><button class="panel-link" onclick="showPanel('overview')">&larr; Back</button></div>
+        <div style="padding: 1rem 0;">
+          <label style="display:block; color:var(--muted); font-size:0.85rem; margin-bottom:0.5rem; text-transform:uppercase; letter-spacing:1px;">Report Type</label>
+          <select id="reportType" style="width:100%; padding:0.8rem; background:rgba(0,0,0,0.5); border:1px solid rgba(212,175,55,0.3); color:var(--text); border-radius:8px; margin-bottom:1.5rem; font-family:'Inter', sans-serif;">
+            <option value="sales">Sales Report (Orders & Volume)</option>
+            <option value="revenue">Revenue Report (Income & Cash Flow)</option>
+            <option value="discount">Discount Report (Promotions & Offers)</option>
+          </select>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem;">
+            <div>
+              <label style="display:block; color:var(--muted); font-size:0.85rem; margin-bottom:0.5rem; text-transform:uppercase; letter-spacing:1px;">Start Date</label>
+              <input type="date" id="reportStart" style="width:100%; padding:0.8rem; background:rgba(0,0,0,0.5); border:1px solid rgba(212,175,55,0.3); color:var(--text); border-radius:8px; font-family:'Inter', sans-serif;" />
+            </div>
+            <div>
+              <label style="display:block; color:var(--muted); font-size:0.85rem; margin-bottom:0.5rem; text-transform:uppercase; letter-spacing:1px;">End Date</label>
+              <input type="date" id="reportEnd" style="width:100%; padding:0.8rem; background:rgba(0,0,0,0.5); border:1px solid rgba(212,175,55,0.3); color:var(--text); border-radius:8px; font-family:'Inter', sans-serif;" />
+            </div>
+          </div>
+          
+          <label style="display:block; color:var(--muted); font-size:0.85rem; margin-bottom:0.5rem; text-transform:uppercase; letter-spacing:1px;">Format</label>
+          <select id="reportFormat" style="width:100%; padding:0.8rem; background:rgba(0,0,0,0.5); border:1px solid rgba(212,175,55,0.3); color:var(--text); border-radius:8px; margin-bottom:2rem; font-family:'Inter', sans-serif;">
+            <option value="pdf">PDF Document (.pdf)</option>
+            <option value="excel">Excel Spreadsheet (.xlsx)</option>
+            <option value="csv">Comma Separated Values (.csv)</option>
+          </select>
+          
+          <button style="background:var(--gold, #D4AF37); color:#000; font-weight:700; border:none; border-radius:8px; padding:1rem; font-size:1rem; width:100%; cursor:pointer; box-shadow:0 4px 15px rgba(212,175,55,0.2);" onclick="generateReport()">Generate & Download Report</button>
+        </div>
+      </div>
+      
+      <div class="panel" style="max-width: 900px; margin: 2rem auto 0 auto;">
+        <div class="panel-header"><div class="panel-title">Generated Reports</div></div>
+        <table class="tbl">
+          <thead><tr><th>#</th><th>Report Type</th><th>Period</th><th>Format</th><th>Actions</th></tr></thead>
+          <tbody id="reportsList"><tr><td colspan="5" class="text-c text-m">No reports generated yet</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- View Modal -->
+    <div id="viewModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.8);z-index:1000;justify-content:center;align-items:center;">
+      <div class="panel" style="max-width:500px;width:90%;max-height:90vh;overflow-y:auto;">
+        <div class="panel-header"><div class="panel-title">Payment Details</div><button class="panel-link" onclick="closeView()">&#x2715; Close</button></div>
+        <div id="viewContent" style="color:var(--text);font-size:0.9rem;line-height:1.5;"></div>
+      </div>
+    </div>
+    
+    
+    <!-- Report Confirmation Modal -->
+    <div id="reportModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.8);backdrop-filter:blur(5px);z-index:1000;justify-content:center;align-items:center;animation:fadeIn 0.3s ease;">
+      <div class="panel" style="max-width:400px;width:90%;text-align:center;border:1px solid var(--gold, #D4AF37);box-shadow:0 10px 30px rgba(212,175,55,0.15);">
+        <div style="font-size:3.5rem; margin-bottom:1rem;">✅</div>
+        <div class="panel-title" style="margin-bottom:1rem; font-family:'Playfair Display', serif; font-size:1.5rem; color:var(--gold, #D4AF37);">Report Generated Successfully</div>
+        <div id="reportModalContent" style="color:var(--muted);font-size:1rem;line-height:1.6;margin-bottom:1.5rem;">
+          Your report has been successfully generated and is ready.
+        </div>
+        <button style="background:var(--gold, #D4AF37); color:#000; font-weight:700; border:none; border-radius:8px; padding:0.6rem 2rem; font-size:1rem; cursor:pointer;" onclick="closeReportModal()">Awesome!</button>
+      </div>
+    </div>
+
+    <!-- Edit Report Modal -->
+    <div id="editReportModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.8);backdrop-filter:blur(5px);z-index:1000;justify-content:center;align-items:center;animation:fadeIn 0.3s ease;">
+      <div class="panel" style="max-width:500px;width:90%;">
+        <div class="panel-header"><div class="panel-title">Edit Report Details</div><button class="panel-link" onclick="closeEditReport()">&#x2715; Close</button></div>
+        <div style="padding: 1rem 0;">
+          <input type="hidden" id="editReportId" />
+          <label style="display:block; color:var(--muted); font-size:0.85rem; margin-bottom:0.5rem;">Report Type</label>
+          <select id="editReportType" style="width:100%; padding:0.8rem; background:rgba(0,0,0,0.5); border:1px solid rgba(212,175,55,0.3); color:var(--text); border-radius:8px; margin-bottom:1.5rem;">
+            <option value="sales">Sales Report (Orders & Volume)</option>
+            <option value="revenue">Revenue Report (Income & Cash Flow)</option>
+            <option value="discount">Discount Report (Promotions & Offers)</option>
+          </select>
+
+          <label style="display:block; color:var(--muted); font-size:0.85rem; margin-bottom:0.5rem;">Start Date</label>
+          <input type="date" id="editReportStart" style="width:100%; padding:0.8rem; background:rgba(0,0,0,0.5); border:1px solid rgba(212,175,55,0.3); color:var(--text); border-radius:8px; margin-bottom:1.5rem;" />
+
+          <label style="display:block; color:var(--muted); font-size:0.85rem; margin-bottom:0.5rem;">End Date</label>
+          <input type="date" id="editReportEnd" style="width:100%; padding:0.8rem; background:rgba(0,0,0,0.5); border:1px solid rgba(212,175,55,0.3); color:var(--text); border-radius:8px; margin-bottom:1.5rem;" />
+          
+          <button style="background:var(--gold); color:#000; font-weight:700; border:none; border-radius:8px; padding:0.8rem 1.5rem; cursor:pointer;" onclick="saveReportEdit()">Save Changes</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Confirm Modal -->
+    <div id="deleteReportModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.8);backdrop-filter:blur(5px);z-index:1000;justify-content:center;align-items:center;">
+      <div class="panel" style="max-width:400px;width:90%;text-align:center;">
+        <div style="font-size:3rem; margin-bottom:1rem;">âš ï¸</div>
+        <div class="panel-title" style="margin-bottom:1rem;">Delete Report?</div>
+        <div style="color:var(--muted);font-size:0.9rem;margin-bottom:1.5rem;">Are you sure you want to delete this report from the list?</div>
+        <input type="hidden" id="deleteReportId" />
+        <div style="display:flex;gap:1rem;justify-content:center;">
+          <button style="background:transparent; color:var(--text); border:1px solid var(--muted); border-radius:8px; padding:0.6rem 1.5rem; cursor:pointer;" onclick="closeDeleteReport()">Cancel</button>
+          <button style="background:#e53e3e; color:#fff; border:none; border-radius:8px; padding:0.6rem 1.5rem; cursor:pointer;" onclick="confirmDeleteReport()">Delete</button>
+        </div>
+      </div>
+    </div>
+  </main>
+  <div id="toast"></div>
+  <script>
+    const API='http://localhost:8080',token=localStorage.getItem('sb_token'),user=JSON.parse(localStorage.getItem('sb_user')||'null');
+    if(!token||!user||user.role!=='FINANCE'){window.location.href='login.html';}
+    document.getElementById('finName').textContent=user ? user.username : 'Finance';
+    document.getElementById('avatarInitial').textContent=user ? user.username.charAt(0).toUpperCase() : 'F';
+    function updateTime(){document.getElementById('topTime').textContent=new Date().toLocaleString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'});}
+    updateTime();setInterval(updateTime,60000);
+    function toast(msg,type){var t=document.getElementById('toast');t.textContent=msg;t.className='show '+(type||'success');setTimeout(function(){t.className='';},3000);}
+    async function apiCall(url,opts){opts=opts||{};var res=await fetch(API+url,Object.assign({},opts,{headers:Object.assign({'Content-Type':'application/json','Authorization':'Bearer '+token},opts.headers||{}),cache:'no-store'}));if(!res.ok)throw new Error('HTTP '+res.status);if(res.status===204)return null;return res.json();}
+    function doLogout(){localStorage.removeItem('sb_token');localStorage.removeItem('sb_user');window.location.href='login.html';}
+    
+    function toggleTheme() {
+      var body = document.body;
+      var btn = document.getElementById('themeToggle');
+      var icon = document.getElementById('themeIcon');
+      body.classList.toggle('light-mode');
+      
+      if(body.classList.contains('light-mode')) {
+        icon.textContent = '☀️';
+        btn.lastChild.textContent = ' Light Mode';
+      } else {
+        icon.textContent = '🌙';
+        btn.lastChild.textContent = ' Night Mode';
+      }
+    }
+    var PANELS=['overview','payments','receipts','reports'];
+    function showPanel(name){PANELS.forEach(function(p){var el=document.getElementById('panel-'+p);if(el)el.style.display='none';});var t=document.getElementById('panel-'+name);if(t)t.style.display='block';if(name==='overview'){loadStats();loadRecent();}if(name==='payments')loadAll();if(name==='receipts')loadReceipts(); document.querySelectorAll('.sidebar-link').forEach(function(btn){btn.classList.remove('active');}); var actBtn=document.querySelector('.sidebar-link[onclick="showPanel(\''+name+'\')"]'); if(actBtn) actBtn.classList.add('active');}
+    function methodBadge(m){var colors={CASH_ON_DELIVERY:'blue',CARD_PAYMENT:'purple',BANK_DEPOSIT:'pink'};var c=colors[m]||'';return '<span class="badge '+c+'">'+(m||'â€”')+'</span>';}
+    async function loadStats(){
+      try{
+        var list=await apiCall('/api/orders');
+        var rev=list?list.reduce(function(s,o){return s+Number(o.totalAmount);},0):0;
+        document.getElementById('fRevenue').textContent='Rs '+rev.toFixed(0);
+        document.getElementById('fOrders').textContent=list?list.length:0;
+        document.getElementById('fCod').textContent=list?list.filter(function(o){return o.paymentMethod==='CASH_ON_DELIVERY';}).length:0;
+        document.getElementById('fCard').textContent=list?list.filter(function(o){return o.paymentMethod==='CARD_PAYMENT';}).length:0;
+        document.getElementById('fBank').textContent=list?list.filter(function(o){return o.paymentMethod==='BANK_DEPOSIT';}).length:0;
+      }catch(e){['fRevenue','fOrders','fCod','fCard','fBank'].forEach(function(id){document.getElementById(id).textContent='0';});}
+    }
+    async function loadRecent(){
+      var el=document.getElementById('finRecent');
+      try{
+        var list=await apiCall('/api/orders');
+        if(!list||!list.length){el.innerHTML='<tr><td colspan="6" class="text-c text-m">No payments yet</td></tr>';return;}
+        el.innerHTML=list.slice(0,8).map(function(o){return '<tr><td><strong>#'+o.id+'</strong></td><td>'+(o.customerName||'â€”')+'</td><td>'+methodBadge(o.paymentMethod)+'</td><td style="color:var(--gold);font-weight:700;">Rs '+Number(o.totalAmount).toFixed(2)+'</td><td><span class="badge '+o.status.toLowerCase()+'">'+o.status+'</span></td><td style="color:var(--muted);font-size:0.78rem;">'+new Date(o.createdAt).toLocaleDateString()+'</td></tr>';}).join('');
+      }catch(e){el.innerHTML='<tr><td colspan="6" class="text-c text-m">Failed to load</td></tr>';}
+    }
+    var globalOrders = [];
+    async function loadAll(){
+      var el=document.getElementById('finAll');
+      try{
+        var list=await apiCall('/api/orders');
+        globalOrders = list || [];
+        if(!list||!list.length){el.innerHTML='<tr><td colspan="9" class="text-c text-m">No payments yet</td></tr>';return;}
+        el.innerHTML=list.map(function(o){return '<tr><td><strong>#'+o.id+'</strong></td><td>'+(o.customerName||'â€”')+'</td><td style="font-size:0.78rem;">'+(o.customerEmail||'â€”')+'</td><td>'+methodBadge(o.paymentMethod)+'</td><td>'+(o.items?o.items.length:0)+' item(s)</td><td style="color:var(--gold);font-weight:700;">Rs '+Number(o.totalAmount).toFixed(2)+'</td><td><span class="badge '+o.status.toLowerCase()+'">'+o.status+'</span></td><td style="color:var(--muted);font-size:0.78rem;">'+new Date(o.createdAt).toLocaleDateString()+'</td><td style="display:flex;gap:0.4rem;"><button class="btn-gold" style="padding:0.2rem 0.5rem;font-size:0.75rem;" onclick="viewPayment('+o.id+')">View</button><button class="btn-gold" style="padding:0.2rem 0.5rem;font-size:0.75rem;" onclick="confirmPayment('+o.id+')">Confirm</button><button class="btn-del" style="padding:0.2rem 0.5rem;font-size:0.75rem;" onclick="deletePayment('+o.id+')">Del</button></td></tr>';}).join('');
+      }catch(e){el.innerHTML='<tr><td colspan="9" class="text-c text-m">Failed to load</td></tr>';}
+    }
+    
+    function viewPayment(id) {
+      var o = globalOrders.find(function(x) { return x.id === id; });
+      if(!o) return;
+      var html = '<p><strong>Order ID:</strong> #' + o.id + '</p>';
+      html += '<p><strong>Customer:</strong> ' + (o.customerName || o.user?.username || 'N/A') + '</p>';
+      html += '<p><strong>Email:</strong> ' + (o.customerEmail || o.user?.email || 'N/A') + '</p>';
+      html += '<p><strong>Payment Method:</strong> ' + o.paymentMethod + '</p>';
+      html += '<p><strong>Status:</strong> ' + o.status + '</p>';
+      html += '<p><strong>Total Amount:</strong> Rs ' + Number(o.totalAmount).toFixed(2) + '</p>';
+      html += '<p><strong>Date:</strong> ' + new Date(o.createdAt).toLocaleString() + '</p>';
+      if (o.paymentReceipt) {
+        html += '<p><strong>Receipt:</strong> <a href="/uploads/receipts/' + o.paymentReceipt + '" target="_blank" style="color:var(--gold);text-decoration:underline;">View Uploaded Receipt</a></p>';
+      }
+      document.getElementById('viewContent').innerHTML = html;
+      document.getElementById('viewModal').style.display = 'flex';
+    }
+    function closeView() { document.getElementById('viewModal').style.display = 'none'; }
+    
+    function generateReport() {
+      var type = document.getElementById('reportType');
+      var start = document.getElementById('reportStart').value;
+      var end = document.getElementById('reportEnd').value;
+      var format = document.getElementById('reportFormat');
+      
+      if(!start || !end) {
+        toast('Please select both start and end dates', 'error');
+        return;
+      }
+      
+      var startDate = new Date(start);
+      var endDate = new Date(end);
+      var today = new Date();
+      
+      if(startDate > endDate) {
+        toast('Start date should be prior to the end date', 'error');
+        return;
+      }
+      if(endDate > today) {
+        toast('Cannot generate reports for future dates', 'error');
+        return;
+      }
+      var diffTime = Math.abs(endDate - startDate);
+      var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+      if(diffDays > 365) {
+        toast('Report date range cannot exceed 1 year', 'error');
+        return;
+      }
+      
+      var reportName = type.options[type.selectedIndex].text;
+      var formatName = format.options[format.selectedIndex].text;
+      
+      var fileContent = "Starlight Bookstore - " + reportName + "\n";
+      fileContent += "Period: " + start + " to " + end + "\n\n";
+      fileContent += "--------------------------------------------------------\n";
+      fileContent += "Total Transactions: 142\n";
+      fileContent += "Total Amount: Rs 45,200.00\n";
+      fileContent += "--------------------------------------------------------\n";
+      fileContent += "This is an auto-generated mock report file.\n";
+      
+      if(format.value === 'pdf') {
+          var doc = new window.jspdf.jsPDF();
+          var lines = doc.splitTextToSize(fileContent, 180);
+          doc.text(lines, 15, 20);
+          doc.save(type.value + '_report_' + start + '.pdf');
+      } else {
+          var mimeType = 'text/plain';
+          var extension = 'txt';
+          
+          if(format.value === 'excel') {
+              mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+              extension = 'xlsx';
+          } else if(format.value === 'csv') {
+              mimeType = 'text/csv';
+              extension = 'csv';
+          }
+          
+          var blob = new Blob([fileContent], { type: mimeType });
+          var url = window.URL.createObjectURL(blob);
+          var a = document.createElement('a');
+          a.style.display = 'none';
+          a.href = url;
+          a.download = type.value + '_report_' + start + '.' + extension;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+      }
+
+      document.getElementById('reportModalContent').innerHTML = 'Your <strong>' + reportName + '</strong> from <strong>' + start + '</strong> to <strong>' + end + '</strong> has been processed.<br><br>The ' + formatName + ' has been saved successfully.';
+      document.getElementById('reportModal').style.display = 'flex';
+      
+      var rep = {
+        id: Date.now(),
+        typeVal: type.value,
+        type: reportName,
+        start: start,
+        end: end,
+        format: format.value,
+        formatName: formatName,
+        blob: blob,
+        url: url
+      };
+      
+      if(format.value === 'pdf') {
+          rep.blobUrl = doc.output('bloburl');
+      } else {
+          rep.blobUrl = url;
+      }
+      
+      myReports.push(rep);
+      renderReports();
+    }
+    
+    var myReports = [];
+    
+    function renderReports() {
+      var el = document.getElementById('reportsList');
+      if(!myReports.length) {
+        el.innerHTML = '<tr><td colspan="5" class="text-c text-m">No reports generated yet</td></tr>';
+        return;
+      }
+      el.innerHTML = myReports.map((r, i) => {
+        return `<tr>
+          <td><strong>#${i+1}</strong></td>
+          <td>${r.type}</td>
+          <td>${r.start} to ${r.end}</td>
+          <td><span class="badge ${r.format}">${r.format.toUpperCase()}</span></td>
+          <td style="display:flex;gap:0.4rem;">
+            <button class="btn-gold" style="padding:0.2rem 0.5rem;font-size:0.75rem;" onclick="viewCreatedReport(${r.id})">View</button>
+            <button class="btn-gold" style="padding:0.2rem 0.5rem;font-size:0.75rem;" onclick="editCreatedReport(${r.id})">Edit</button>
+            <button class="btn-del" style="padding:0.2rem 0.5rem;font-size:0.75rem;" onclick="deleteCreatedReport(${r.id})">Del</button>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+    
+    function viewCreatedReport(id) {
+      var r = myReports.find(x => x.id === id);
+      if(r && r.blobUrl) {
+        window.open(r.blobUrl, '_blank');
+      }
+    }
+    
+    function editCreatedReport(id) {
+      var r = myReports.find(x => x.id === id);
+      if(!r) return;
+      document.getElementById('editReportId').value = r.id;
+      document.getElementById('editReportType').value = r.typeVal;
+      document.getElementById('editReportStart').value = r.start;
+      document.getElementById('editReportEnd').value = r.end;
+      document.getElementById('editReportModal').style.display = 'flex';
+    }
+    
+    function closeEditReport() { document.getElementById('editReportModal').style.display = 'none'; }
+    
+    function saveReportEdit() {
+      var id = parseInt(document.getElementById('editReportId').value);
+      var r = myReports.find(x => x.id === id);
+      if(!r) return;
+      
+      var newStart = document.getElementById('editReportStart').value;
+      var newEnd = document.getElementById('editReportEnd').value;
+      
+      if(!newStart || !newEnd) {
+        toast('Please select both start and end dates', 'error');
+        return;
+      }
+      
+      var startDate = new Date(newStart);
+      var endDate = new Date(newEnd);
+      var today = new Date();
+      
+      if(startDate > endDate) {
+        toast('Start date should be prior to the end date', 'error');
+        return;
+      }
+      if(endDate > today) {
+        toast('Cannot set report end date to the future', 'error');
+        return;
+      }
+      var diffTime = Math.abs(endDate - startDate);
+      var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+      if(diffDays > 365) {
+        toast('Report date range cannot exceed 1 year', 'error');
+        return;
+      }
+      
+      r.typeVal = document.getElementById('editReportType').value;
+      var sel = document.getElementById('editReportType');
+      r.type = sel.options[sel.selectedIndex].text;
+      r.start = newStart;
+      r.end = newEnd;
+      
+      closeEditReport();
+      renderReports();
+      toast('Report details updated successfully!');
+    }
+    
+    function deleteCreatedReport(id) {
+      document.getElementById('deleteReportId').value = id;
+      document.getElementById('deleteReportModal').style.display = 'flex';
+    }
+    
+    function closeDeleteReport() { document.getElementById('deleteReportModal').style.display = 'none'; }
+    
+    function confirmDeleteReport() {
+      var id = parseInt(document.getElementById('deleteReportId').value);
+      myReports = myReports.filter(x => x.id !== id);
+      closeDeleteReport();
+      renderReports();
+      toast('Report deleted successfully!');
+    }
+    
+    function closeReportModal() {
+      document.getElementById('reportModal').style.display = 'none';
+    }
+    
+    async function confirmPayment(id) {
+      if(!confirm('Mark payment as confirmed (PACKED)?')) return;
+      try{
+        await apiCall('/api/orders/'+id+'/status',{method:'PUT',body:JSON.stringify({status:'PACKED'})});
+        toast('Payment confirmed! Status updated to PACKED.');
+        loadAll(); loadRecent(); loadStats();
+      }catch(e){toast('Failed to confirm payment','error');}
+    }
+    
+    async function deletePayment(id) {
+      if(!confirm('Are you sure you want to delete this order/payment record?')) return;
+      try{
+        await fetch(API+'/api/orders/'+id, {method:'DELETE', headers:{'Authorization':'Bearer '+token}});
+        toast('Payment record deleted!');
+        loadAll(); loadRecent(); loadStats();
+      }catch(e){toast('Failed to delete payment','error');}
+    }
+    async function loadReceipts(){
+      var el=document.getElementById('finReceipts');
+      try{
+        var list=await apiCall('/api/orders');
+        var bank=list?list.filter(function(o){return o.paymentMethod==='BANK_DEPOSIT';}):[];
+        if(!bank.length){el.innerHTML='<tr><td colspan="6" class="text-c text-m">No bank deposit receipts</td></tr>';return;}
+        el.innerHTML=bank.map(function(o){return '<tr><td><strong>#'+o.id+'</strong></td><td>'+(o.customerName||'â€”')+'</td><td style="color:var(--gold);font-weight:700;">Rs '+Number(o.totalAmount).toFixed(2)+'</td><td><span class="badge '+o.status.toLowerCase()+'">'+o.status+'</span></td><td style="color:var(--muted);font-size:0.78rem;">'+new Date(o.createdAt).toLocaleDateString()+'</td><td>'+(o.paymentReceipt?'<a href="/uploads/receipts/'+o.paymentReceipt+'" target="_blank" style="color:var(--gold);text-decoration:underline;">View Receipt</a>':'<span class="text-m">None</span>')+'</td></tr>';}).join('');
+      }catch(e){el.innerHTML='<tr><td colspan="6" class="text-c text-m">Failed to load</td></tr>';}
+    }
+    loadStats();loadRecent();
+  </script>
+<script src='theme.js'></script>
+</body>
+</html>
+
+

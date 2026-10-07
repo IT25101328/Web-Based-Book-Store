@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Inventory - Purchasing</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Outfit:wght@400;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=3.0" />
+</head>
+<body>
+  <header class="navbar glass-nav">
+    <nav class="navbar">
+      <div class="logo"><span class="logo-icon">📋</span><h1>Inventory Portal</h1></div>
+      <ul class="nav-links">
+        <li><a href="inventory-dashboard.html" class="nav-link">Dashboard</a></li>
+        <li><a href="inventory-books.html" class="nav-link">Manage Books</a></li>
+        <li><a href="inventory-purchasing.html" class="nav-link active">Purchasing</a></li>
+      </ul>
+      <div class="nav-actions"><button class="btn-primary" onclick="logoutMPA()">Log Out</button></div>
+    </nav>
+  </header>
+  <main class="main-content">
+    <div class="page-header fade-in-up"><h1 class="gradient-text">Purchasing Orders</h1></div>
+    <div class="glass-panel fade-in-up text-center">
+      <div style="font-size:4rem; margin-bottom:1rem;">🛒</div>
+      <h3>Supplier Portal</h3>
+      <p class="text-muted">Generate new purchase orders for suppliers.</p>
+    </div>
+  </main>
+  <script src="app.js?v=6.0"></script>
+  <script>document.addEventListener('DOMContentLoaded', () => enforceRole('INVENTORY'));</script>
+<script src='theme.js'></script>
+</body>
+</html>
+

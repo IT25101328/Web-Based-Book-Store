@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Books - Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Outfit:wght@400;700;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css?v=4.0"/>
+</head>
+<body>
+  <header class="navbar glass-nav">
+    <nav class="navbar">
+      <div class="logo">
+        <span class="logo-icon">✦</span>
+        <h1>Admin Portal</h1>
+      </div>
+      <ul class="nav-links">
+        <li><a href="admin-dashboard.html" class="nav-link">Dashboard</a></li>
+        <li><a href="admin-books.html" class="nav-link active">Books</a></li>
+        <li><a href="admin-users.html" class="nav-link">Users</a></li>
+        <li><a href="admin-audit.html" class="nav-link">Audit Logs</a></li>
+      </ul>
+      <div class="nav-actions">
+        <button class="btn-primary" onclick="doLogout()">Log Out</button>
+      </div>
+    </nav>
+  </header>
+
+  <main class="main-content" style="max-width:1200px;">
+    <div class="page-header fade-in-up" style="display:flex;justify-content:space-between;align-items:center;">
+      <h1 class="gradient-text">Manage Books</h1>
+      <button class="btn-primary" onclick="window.location.href='admin-add-book.html'">+ Add New Book</button>
+    </div>
+
+    <div class="glass-panel fade-in-up" style="margin-top:2rem;">
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Cover</th>
+              <th>Title &amp; Author</th>
+              <th>Category</th>
+              <th>Price</th>
+              <th>Stock</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="booksTableBody">
+            <tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text-muted);">Loading books...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- Edit Book Modal -->
+  <div id="editModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;align-items:center;justify-content:center;">
+    <div class="glass-panel" style="width:90%;max-width:700px;max-height:90vh;overflow-y:auto;padding:2rem;position:relative;">
+      <h2 class="gradient-text" style="margin-bottom:1.5rem;">Edit Book</h2>
+      <form id="editForm">
+        <input type="hidden" id="editId"/>
+        <div class="form-row">
+          <div class="form-group"><label>Title *</label><input type="text" id="editTitle" required/></div>
+          <div class="form-group"><label>Author *</label><input type="text" id="editAuthor" required/></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Genre/Category</label>
+            <select id="editGenre" style="width:100%;padding:0.75rem;background:rgba(255,255,255,0.05);color:var(--text);border:1px solid var(--glass-b);border-radius:8px;">
+              <option value="">Select Category</option>
+              <option value="Fiction">Fiction</option>
+              <option value="Non-Fiction">Non-Fiction</option>
+              <option value="Science Fiction">Science Fiction</option>
+              <option value="Fantasy">Fantasy</option>
+              <option value="Mystery">Mystery</option>
+              <option value="Romance">Romance</option>
+              <option value="Thriller">Thriller</option>
+              <option value="Horror">Horror</option>
+              <option value="Biography">Biography</option>
+              <option value="History">History</option>
+              <option value="Technology">Technology</option>
+              <option value="Business">Business</option>
+              <option value="Self-Help">Self-Help</option>
+              <option value="Children">Children</option>
+              <option value="Educational">Educational</option>
+            </select>
+          </div>
+          <div class="form-group"><label>ISBN</label><input type="text" id="editIsbn"/></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Price (Rs) *</label><input type="number" step="0.01" min="0" id="editPrice" required/></div>
+          <div class="form-group"><label>Stock *</label><input type="number" min="0" id="editStock" required/></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Publisher</label><input type="text" id="editPublisher"/></div>
+          <div class="form-group"><label>Language</label><input type="text" id="editLanguage"/></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Publication Year</label><input type="number" id="editYear"/></div>
+          <div class="form-group"><label>Rating (0-5)</label><input type="number" step="0.1" min="0" max="5" id="editRating"/></div>
+        </div>
+        <div class="form-group" style="margin-bottom:1rem;">
+          <label>Change Cover Image (JPG/PNG)</label>
+          <input type="file" id="editCoverImage" accept="image/png, image/jpeg" style="background:rgba(255,255,255,0.05);color:var(--text);border:1px solid var(--glass-b);border-radius:8px;padding:0.75rem;width:100%;"/>
+          <input type="hidden" id="existingCoverImage"/>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea id="editDescription" rows="3" style="width:100%;background:rgba(255,255,255,0.05);color:var(--text);border:1px solid var(--glass-b);border-radius:8px;padding:0.75rem;"></textarea>
+        </div>
+        <div style="display:flex;gap:1rem;justify-content:flex-end;margin-top:1.5rem;">
+          <button type="button" class="btn-ghost" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const API = 'http://localhost:8080';
+    const token = localStorage.getItem('sb_token');
+    const user  = JSON.parse(localStorage.getItem('sb_user') || 'null');
+
+    // Guard: must be logged in as admin
+    if (!token || !user || user.role !== 'ADMIN') {
+      window.location.href = 'login.html';
+    }
+
+    function showToast(msg, type) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'toast toast-' + (type || 'success') + ' show';
+      setTimeout(() => t.className = 'toast', 3500);
+    }
+
+    function doLogout() {
+      localStorage.removeItem('sb_token');
+      localStorage.removeItem('sb_user');
+      window.location.href = 'login.html';
+    }
+
+    async function loadBooks() {
+      const tbody = document.getElementById('booksTableBody');
+      try {
+        const res = await fetch(API + '/api/books', {
+          headers: { 'Authorization': 'Bearer ' + token },
+          cache: 'no-store'
+        });
+        if (!res.ok) throw new Error('Server error: ' + res.status);
+        const books = await res.json();
+
+        if (!books || books.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text-muted);">No books found. Click "+ Add New Book" to add one.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = books.map(b => {
+          const coverHTML = b.coverImage
+            ? `<img src="/uploads/covers/${b.coverImage}" style="width:50px;height:65px;object-fit:cover;border-radius:6px;display:block;"/>`
+            : `<div style="width:50px;height:65px;background:linear-gradient(135deg,#D4A574,#8B5E34);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;">&#128214;</div>`;
+
+          const stockBadge = b.stock > 5
+            ? `<span class="badge badge-success">${b.stock}</span>`
+            : b.stock > 0
+              ? `<span class="badge badge-warning">${b.stock}</span>`
+              : `<span class="badge badge-danger">0</span>`;
+
+          return `<tr>
+            <td style="font-weight:600;color:var(--text-muted);">#${b.id}</td>
+            <td>${coverHTML}</td>
+            <td>
+              <strong style="color:var(--text);">${b.title || ''}</strong><br>
+              <span class="text-muted" style="font-size:0.85rem;">by ${b.author || ''}</span>
+            </td>
+            <td>
+              ${b.genre ? `<span class="genre-tag">${b.genre}</span>` : '<span style="color:var(--text-muted);">—</span>'}
+              ${b.isbn ? `<br><span style="font-size:0.8rem;color:var(--text-muted);">${b.isbn}</span>` : ''}
+            </td>
+            <td style="font-weight:700;color:var(--primary);">Rs ${Number(b.price || 0).toFixed(2)}</td>
+            <td>${stockBadge}</td>
+            <td>
+              <div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;">
+                <button class="btn-ghost btn-sm" onclick="openEdit(${b.id})">Edit</button>
+                <button class="btn-ghost btn-sm" style="color:#ff6b6b;border-color:rgba(255,107,107,0.3);" onclick="deleteBook(${b.id}, this)">Delete</button>
+              </div>
+            </td>
+          </tr>`;
+        }).join('');
+
+        // Store books globally for edit modal
+        window._books = books;
+
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;color:#ff6b6b;">Error loading books: ${err.message}</td></tr>`;
+        console.error('loadBooks error:', err);
+      }
+    }
+
+    function openEdit(id) {
+      const b = window._books?.find(x => x.id === id);
+      if (!b) return;
+      document.getElementById('editId').value = b.id;
+      document.getElementById('editTitle').value = b.title || '';
+      document.getElementById('editAuthor').value = b.author || '';
+      document.getElementById('editGenre').value = b.genre || '';
+      document.getElementById('editIsbn').value = b.isbn || '';
+      document.getElementById('editPrice').value = b.price || '';
+      document.getElementById('editStock').value = b.stock || 0;
+      document.getElementById('editPublisher').value = b.publisher || '';
+      document.getElementById('editLanguage').value = b.language || '';
+      document.getElementById('editYear').value = b.publicationYear || '';
+      document.getElementById('editRating').value = b.rating || '';
+      document.getElementById('editDescription').value = b.description || '';
+      document.getElementById('existingCoverImage').value = b.coverImage || '';
+      document.getElementById('editCoverImage').value = ''; // Reset file input
+      document.getElementById('editModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('editModal').style.display = 'none';
+    }
+
+    document.getElementById('editForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      const origText = submitBtn.textContent;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Saving...';
+      
+      const id = document.getElementById('editId').value;
+      
+      let coverFileName = document.getElementById('existingCoverImage').value;
+      const coverInput = document.getElementById('editCoverImage');
+      
+      if (coverInput.files.length > 0) {
+          const coverFormData = new FormData();
+          coverFormData.append("file", coverInput.files[0]);
+          try {
+              const coverRes = await fetch(API + '/api/books/upload-cover', {
+                  method: 'POST',
+                  headers: { 'Authorization': 'Bearer ' + token },
+                  body: coverFormData
+              });
+              if (!coverRes.ok) throw new Error("Cover image upload failed");
+              const coverData = await coverRes.json();
+              coverFileName = coverData.fileName;
+          } catch (err) {
+              showToast(err.message, 'error');
+              submitBtn.disabled = false;
+              submitBtn.textContent = origText;
+              return;
+          }
+      }
+
+      const existingBook = window._books?.find(x => x.id == id) || {};
+      
+      const book = {
+        title: document.getElementById('editTitle').value,
+        author: document.getElementById('editAuthor').value,
+        genre: document.getElementById('editGenre').value,
+        isbn: document.getElementById('editIsbn').value,
+        price: parseFloat(document.getElementById('editPrice').value),
+        stock: parseInt(document.getElementById('editStock').value),
+        publisher: document.getElementById('editPublisher').value,
+        language: document.getElementById('editLanguage').value,
+        publicationYear: parseInt(document.getElementById('editYear').value) || null,
+        rating: parseFloat(document.getElementById('editRating').value) || null,
+        description: document.getElementById('editDescription').value,
+        coverImage: coverFileName,
+        pdfFileName: existingBook.pdfFileName,
+        pageCount: existingBook.pageCount,
+        releaseDate: existingBook.releaseDate,
+        bookFormat: existingBook.bookFormat
+      };
+
+      try {
+        const res = await fetch(`${API}/api/books/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+          body: JSON.stringify(book)
+        });
+        if (!res.ok) throw new Error('Save failed: ' + res.status);
+        showToast('Book updated successfully!', 'success');
+        closeModal();
+        loadBooks();
+      } catch (err) {
+        showToast('Error: ' + err.message, 'error');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = origText;
+      }
+    });
+
+    async function deleteBook(id, btn) {
+      if (!confirm('Are you sure you want to delete this book?')) return;
+      btn.disabled = true;
+      btn.textContent = '...';
+      try {
+        const res = await fetch(`${API}/api/books/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (!res.ok) throw new Error('Delete failed: ' + res.status);
+        showToast('Book deleted!', 'success');
+        loadBooks();
+      } catch (err) {
+        showToast('Error: ' + err.message, 'error');
+        btn.disabled = false;
+        btn.textContent = 'Delete';
+      }
+    }
+
+    // Close modal on outside click
+    document.getElementById('editModal').addEventListener('click', (e) => {
+      if (e.target === document.getElementById('editModal')) closeModal();
+    });
+
+    // Load books immediately on page load
+    loadBooks();
+  </script>
+<script src='theme.js'></script>
+</body>
+</html>
+
+

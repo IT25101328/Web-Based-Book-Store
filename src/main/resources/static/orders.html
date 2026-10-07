@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Orders - Starlight</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Outfit:wght@400;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=5.0" />
+  <style>
+    .order-card {
+      background: rgba(20, 20, 25, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      transition: all 0.3s ease;
+    }
+    .order-card:hover {
+      border-color: rgba(212, 163, 115, 0.5);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .order-header {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      padding-bottom: 1rem;
+      margin-bottom: 1rem;
+    }
+    .order-id { font-family: 'Outfit', sans-serif; font-size: 1.4rem; font-weight: 700; color: var(--gold); }
+    .order-date { font-size: 0.95rem; color: var(--text-muted); margin-top: 0.2rem; }
+    .order-status {
+      padding: 0.4rem 1rem;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .status-PENDING { background: rgba(243, 156, 18, 0.15); color: #f39c12; border: 1px solid rgba(243,156,18,0.3); }
+    .status-SHIPPED { background: rgba(52, 152, 219, 0.15); color: #3498db; border: 1px solid rgba(52,152,219,0.3); }
+    .status-DELIVERED { background: rgba(46, 204, 113, 0.15); color: #2ecc71; border: 1px solid rgba(46,204,113,0.3); }
+    .status-CANCELLED { background: rgba(231, 76, 60, 0.15); color: #e74c3c; border: 1px solid rgba(231,76,60,0.3); }
+    
+    .order-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.8rem 0;
+      border-bottom: 1px dashed rgba(255,255,255,0.05);
+      font-size: 1.05rem;
+    }
+    .order-total {
+      margin-top: 1.5rem;
+      text-align: right;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--gold);
+    }
+    .receipt-section {
+      margin-top: 1.5rem;
+      padding: 1.5rem;
+      background: rgba(0,0,0,0.3);
+      border-radius: 12px;
+      border: 1px dashed rgba(212, 163, 115, 0.4);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-orbs"><div class="orb orb1"></div><div class="orb orb2"></div></div>
+
+  <header class="navbar glass-nav" id="navbar">
+    <nav class="navbar">
+      <div class="logo">
+        <span class="logo-icon">✨</span>
+        <a href="index.html" style="color:white;text-decoration:none;"><h1>Starlight</h1></a>
+      </div>
+      <ul class="nav-links">
+        <li><a href="index.html" class="nav-link">Home</a></li>
+        <li><a href="catalog.html" class="nav-link">Browse Books</a></li>
+        <li class="auth-only" style="display:none;"><a href="wishlist.html" class="nav-link">Wishlist</a></li>
+        <li class="auth-only dropdown" style="display:none;">
+          <a href="#" class="nav-link active" id="navAccountBtn" onclick="toggleAccountDropdown(event)">Account ▼</a>
+          <div class="dropdown-content account-dropdown" id="accountDropdownContent" style="width: 250px; padding: 0.5rem; right: 0; left: auto; background: rgba(20,20,20,0.95); border: 1px solid var(--gold); border-radius: 8px; z-index: 999; display:none; position:absolute;">
+            <a href="profile.html" style="display:block; padding:0.5rem; text-decoration:none; color:var(--text); transition:all 0.2s;">👤 Profile</a>
+            <a href="orders.html" style="display:block; padding:0.5rem; text-decoration:none; color:var(--gold); transition:all 0.2s;">📦 My Orders</a>
+            <a href="wishlist.html" style="display:block; padding:0.5rem; text-decoration:none; color:var(--text); transition:all 0.2s;">❤️ Wishlist</a>
+            <a href="support.html" style="display:block; padding:0.5rem; text-decoration:none; color:var(--text); transition:all 0.2s;">🎫 Support Tickets</a>
+            <a href="change-password.html" style="display:block; padding:0.5rem; text-decoration:none; color:var(--text); transition:all 0.2s;">🔒 Change Password</a>
+            <hr style="border-color: rgba(255,255,255,0.1); margin: 0.5rem 0;">
+            <a href="#" onclick="logoutMPA(event)" style="display:block; padding:0.5rem; text-decoration:none; color:#ff6b6b; transition:all 0.2s;">🚪 Logout</a>
+          </div>
+        </li>
+      </ul>
+      <div class="nav-actions">
+        <div class="auth-only dropdown" style="display:none; position:relative;">
+          <button class="btn-primary" style="padding: 0.5rem 1rem;" onclick="toggleNotificationDropdown(event)">
+            🔔 <span id="notificationBadge" class="badge" style="display:none; background: #d4a373; color: black; border-radius: 50%; padding: 2px 6px; font-size: 12px; margin-left: 4px;">0</span>
+          </button>
+          <div class="dropdown-content notification-dropdown" id="notificationDropdownContent" style="width: 320px; padding: 1rem; right: 0; left: auto; display:none; position:absolute; background: rgba(20,20,20,0.95); border: 1px solid var(--gold); border-radius: 8px; z-index: 999; margin-top: 0.5rem;">
+          </div>
+        </div>
+        <div class="cart-icon no-admin auth-only" onclick="window.location.href='cart.html'" style="display:none;">
+          🛒 <span class="cart-badge" id="navCartBadge">0</span>
+        </div>
+        <button id="btnLogin" class="btn-primary guest-only" onclick="window.location.href='login.html'">Log In</button>
+      </div>
+    </nav>
+  </header>
+
+  <main class="main-content" style="max-width: 900px; margin: 120px auto 40px;">
+    <div class="page-header fade-in-up" style="margin-bottom: 2rem;">
+      <h1 class="gradient-text" style="font-size: 3rem;">My Orders</h1>
+      <p class="text-muted">View your order history, track shipments, and upload payment receipts.</p>
+    </div>
+
+    <!-- Tabs -->
+    <div style="display: flex; gap: 2rem; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 2rem; padding-bottom: 0.5rem;" id="orderTabs">
+      <button id="tab-CURRENT" class="btn-ghost active" onclick="switchOrderTab('CURRENT')" style="border-radius:0; border-bottom: 2px solid var(--gold); color:var(--gold); padding: 0.5rem 1rem;">Current Orders</button>
+      <button id="tab-PAST" class="btn-ghost" onclick="switchOrderTab('PAST')" style="border-radius:0; border-bottom: 2px solid transparent; color:white; padding: 0.5rem 1rem;">Past Orders</button>
+    </div>
+
+    <div id="ordersContainer" style="display:flex; flex-direction:column; gap:1rem;">
+      <div style="text-align:center; padding:3rem;"><div class="spinner"></div></div>
+    </div>
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="app.js?v=7.0"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      applyAuthState();
+      if (!token) {
+        window.location.href = 'login.html';
+        return;
+      }
+      loadOrders();
+    });
+
+    let allOrders = [];
+    let currentTab = 'CURRENT';
+
+    function switchOrderTab(tab) {
+      currentTab = tab;
+      document.getElementById('tab-CURRENT').classList.toggle('active', tab === 'CURRENT');
+      document.getElementById('tab-PAST').classList.toggle('active', tab === 'PAST');
+      document.getElementById('tab-CURRENT').style.borderColor = tab === 'CURRENT' ? 'var(--gold)' : 'transparent';
+      document.getElementById('tab-PAST').style.borderColor = tab === 'PAST' ? 'var(--gold)' : 'transparent';
+      document.getElementById('tab-CURRENT').style.color = tab === 'CURRENT' ? 'var(--gold)' : 'white';
+      document.getElementById('tab-PAST').style.color = tab === 'PAST' ? 'var(--gold)' : 'white';
+      renderOrders();
+    }
+
+    async function loadOrders() {
+      const container = document.getElementById('ordersContainer');
+      try {
+        const res = await fetch('/api/orders/my-orders', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (!res.ok) throw new Error('Failed to fetch orders');
+        allOrders = await res.json();
+        renderOrders();
+      } catch (err) {
+        console.error(err);
+        container.innerHTML = '<p style="color:#e74c3c;text-align:center;">Failed to load orders. Please try again later.</p>';
+      }
+    }
+
+    function renderOrders() {
+      const container = document.getElementById('ordersContainer');
+      let filteredOrders = [];
+      if (currentTab === 'CURRENT') {
+        filteredOrders = allOrders.filter(o => o.status === 'PENDING' || o.status === 'PAYMENT_PENDING');
+      } else {
+        filteredOrders = allOrders.filter(o => o.status !== 'PENDING' && o.status !== 'PAYMENT_PENDING');
+      }
+
+      if (filteredOrders.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state glass-panel fade-in-up" style="padding:4rem 2rem;text-align:center;">
+            <div style="font-size:4rem;margin-bottom:1rem;">📦</div>
+            <p style="font-size:1.2rem;margin-bottom:2rem;">No ${currentTab.toLowerCase()} orders found.</p>
+            <button class="btn-primary" onclick="window.location.href='catalog.html'">Start Shopping</button>
+          </div>
+        `;
+        return;
+      }
+
+      let html = '';
+      filteredOrders.forEach((o, index) => {
+        let itemsHtml = '';
+        if (o.items) {
+          o.items.forEach(i => {
+            itemsHtml += `
+              <div class="order-item">
+                <span>${i.book ? i.book.title : 'Unknown Book'} <strong>(x${i.quantity})</strong></span>
+                <span>$${(i.price * i.quantity).toFixed(2)}</span>
+              </div>
+            `;
+          });
+        }
+        
+        let receiptHtml = '';
+        if (o.paymentMethod === 'BANK_DEPOSIT') {
+          if (o.paymentReceipt) {
+            receiptHtml = `
+              <div class="receipt-section">
+                <div>
+                  <span style="color:var(--green); font-weight:700;">✅ Receipt Uploaded</span>
+                  <p style="font-size:0.85rem; color:var(--muted); margin-top:0.3rem;">Your payment is being verified by our team.</p>
+                </div>
+                <a href="/uploads/receipts/${o.paymentReceipt}" target="_blank" class="btn-ghost" style="text-decoration:none;">Download Receipt</a>
+              </div>
+            `;
+          } else {
+            receiptHtml = `
+              <div class="receipt-section">
+                <div>
+                  <span style="color:#f39c12; font-weight:700;">⚠️ Payment Receipt Required</span>
+                  <p style="font-size:0.85rem; color:var(--muted); margin-top:0.3rem;">Please upload your bank transfer receipt to process the order.</p>
+                </div>
+                <div>
+                  <input type="file" id="receiptFile-${o.id}" accept=".png,.jpg,.jpeg,.pdf" style="display:none;" onchange="uploadReceipt(${o.id})" />
+                  <button class="btn-primary" onclick="document.getElementById('receiptFile-${o.id}').click()">Upload File</button>
+                </div>
+              </div>
+            `;
+          }
+        }
+
+        html += `
+          <div class="order-card fade-in-up" style="animation-delay: ${index * 0.1}s">
+            <div class="order-header">
+              <div>
+                <div class="order-id">Order #ORD${String(o.id).padStart(3, '0')}</div>
+                <div class="order-date">${new Date(o.createdAt).toLocaleString()}</div>
+              </div>
+              <div style="display:flex; align-items:center; gap: 1rem;">
+                <span class="order-status status-${o.status}">${o.status}</span>
+                <a href="track-order.html?id=${o.id}" class="btn-ghost" style="border:1px solid var(--gold); color:var(--gold); padding:0.4rem 1rem; text-decoration:none; border-radius:8px;">📍 Track</a>
+              </div>
+            </div>
+            <div style="margin-bottom: 1.5rem; font-size: 0.95rem; color:var(--muted);">
+              <strong>Payment Method:</strong> ${o.paymentMethod === 'BANK_DEPOSIT' ? 'Bank Deposit' : o.paymentMethod === 'CASH_ON_DELIVERY' ? 'Cash on Delivery' : 'Card Payment'}
+            </div>
+            <div style="margin-bottom: 1rem;">
+              <div style="text-transform:uppercase; font-size:0.8rem; letter-spacing:1px; color:var(--gold); margin-bottom:0.5rem;">Items Ordered</div>
+              ${itemsHtml}
+            </div>
+            <div class="order-total">
+              Total: $${o.totalAmount ? o.totalAmount.toFixed(2) : '0.00'}
+            </div>
+            ${receiptHtml}
+          </div>
+        `;
+      });
+      container.innerHTML = html;
+    }
+
+    async function uploadReceipt(orderId) {
+      const fileInput = document.getElementById(`receiptFile-${orderId}`);
+      const file = fileInput.files[0];
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        showToast('Uploading receipt...', 'info');
+        
+        const res = await fetch('/api/orders/upload-receipt', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token },
+          body: formData
+        });
+        
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Upload failed');
+        
+        // Attach receipt to order
+        const attachRes = await fetch(`/api/orders/${orderId}/receipt`, {
+          method: 'PUT',
+          headers: { 
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ fileName: data.fileName })
+        });
+
+        if (!attachRes.ok) throw new Error('Failed to attach receipt to order');
+
+        showToast('Receipt uploaded successfully!', 'success');
+        setTimeout(() => loadOrders(), 1500);
+
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+  </script>
+<script src='theme.js'></script>
+</body>
+</html>
+

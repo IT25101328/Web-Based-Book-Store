@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Support Dashboard - Starlight</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Outfit:wght@400;700;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="admin-styles.css"/>
+</head>
+<body class="admin-body">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><span>&#x1F3AB;</span><span>Support</span></div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Tickets</div>
+      <button class="sidebar-link active" onclick="showPanel('tickets')">All Tickets</button>
+      <button class="sidebar-link" onclick="showPanel('open')">Open Tickets</button>
+    </div>
+    <div class="sidebar-footer">
+      <div class="admin-avatar">
+        <div class="avatar-icon" id="avatarInitial">CS</div>
+        <div><div class="avatar-name" id="suppName">Support</div><div class="avatar-role">CUSTOMER SERVICE</div></div>
+      </div>
+      <button class="sidebar-logout" onclick="doLogout()">Sign Out</button>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="top-bar">
+      <div><div class="page-title">Customer Service <span>Supervisor</span></div><div class="top-time" id="topTime"></div></div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-icon pink">TKT</div><div><div class="stat-num pink" id="sTotal">--</div><div class="stat-lbl">Total Tickets</div></div></div>
+      <div class="stat-card"><div class="stat-icon purple">OPN</div><div><div class="stat-num purple" id="sOpen">--</div><div class="stat-lbl">Open</div></div></div>
+      <div class="stat-card"><div class="stat-icon blue">INP</div><div><div class="stat-num blue" id="sInProgress">--</div><div class="stat-lbl">In Progress</div></div></div>
+      <div class="stat-card"><div class="stat-icon green">RES</div><div><div class="stat-num green" id="sResolved">--</div><div class="stat-lbl">Resolved</div></div></div>
+    </div>
+    <div id="panel-tickets">
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">All Support Tickets</div></div>
+        <table class="tbl">
+          <thead><tr><th>#</th><th>Order</th><th>Customer</th><th>Category</th><th>Description</th><th>Status</th><th>Date</th><th>Update</th></tr></thead>
+          <tbody id="suppTickets"><tr><td colspan="8" class="text-c text-m">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <div id="panel-open" style="display:none;">
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">Open Tickets</div><button class="panel-link" onclick="showPanel('tickets')">&larr; All Tickets</button></div>
+        <table class="tbl">
+          <thead><tr><th>#</th><th>Order</th><th>Customer</th><th>Category</th><th>Description</th><th>Date</th><th>Update</th></tr></thead>
+          <tbody id="suppOpen"><tr><td colspan="7" class="text-c text-m">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+  <div id="toast"></div>
+  <script>
+    const API='http://localhost:8080',token=localStorage.getItem('sb_token'),user=JSON.parse(localStorage.getItem('sb_user')||'null');
+    if(!token||!user||user.role!=='SUPPORT'){window.location.href='login.html';}
+    document.getElementById('suppName').textContent=user ? user.username : 'Support';
+    document.getElementById('avatarInitial').textContent=user ? user.username.charAt(0).toUpperCase() : 'S';
+    function updateTime(){document.getElementById('topTime').textContent=new Date().toLocaleString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'});}
+    updateTime();setInterval(updateTime,60000);
+    function toast(msg,type){const t=document.getElementById('toast');t.textContent=msg;t.className='show '+(type||'success');setTimeout(function(){t.className='';},3000);}
+    async function apiCall(url,opts){opts=opts||{};const res=await fetch(API+url,Object.assign({},opts,{headers:Object.assign({'Content-Type':'application/json','Authorization':'Bearer '+token},opts.headers||{}),cache:'no-store'}));if(!res.ok)throw new Error('HTTP '+res.status);if(res.status===204)return null;return res.json();}
+    function doLogout(){localStorage.removeItem('sb_token');localStorage.removeItem('sb_user');window.location.href='login.html';}
+    var PANELS=['tickets','open'];
+    function showPanel(name){PANELS.forEach(function(p){var el=document.getElementById('panel-'+p);if(el)el.style.display='none';});var t=document.getElementById('panel-'+name);if(t)t.style.display='block';if(name==='tickets')loadTickets();if(name==='open')loadOpen();}
+    function statusSel(id){return '<select class="status-sel" onchange="updateTicket('+id+',this.value)"><option value="">Update...</option><option value="OPEN">Open</option><option value="IN_PROGRESS">In Progress</option><option value="RESOLVED">Resolved</option></select>';}
+    function ticketRowFull(t){return '<tr><td><strong>#'+(t.ticketId||t.id)+'</strong></td><td>'+(t.orderId?'<a href="track-order.html?id='+t.orderId+'" target="_blank" style="color:var(--gold);text-decoration:none;">📍 #'+t.orderId+'</a>':'-')+'</td><td>'+(t.customer?t.customer.username:(t.customerName||'-'))+'</td><td>'+(t.issueCategory||'-')+'</td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(t.description||'-')+'</td><td><span class="badge '+(t.status||'').toLowerCase()+'">'+(t.status||'-')+'</span></td><td style="color:var(--muted);font-size:0.78rem;">'+(t.createdDate?new Date(t.createdDate).toLocaleDateString():'-')+'</td><td><div style="display:flex;align-items:center;gap:0.5rem;">'+statusSel(t.ticketId||t.id)+'<button class="btn-primary" style="padding:2px 8px; background:#e63946; font-size:12px;" onclick="deleteTicket('+(t.ticketId||t.id)+')">🗑️</button></div></td></tr>';}
+    function ticketRowShort(t){return '<tr><td><strong>#'+(t.ticketId||t.id)+'</strong></td><td>'+(t.orderId?'<a href="track-order.html?id='+t.orderId+'" target="_blank" style="color:var(--gold);text-decoration:none;">📍 #'+t.orderId+'</a>':'-')+'</td><td>'+(t.customer?t.customer.username:(t.customerName||'-'))+'</td><td>'+(t.issueCategory||'-')+'</td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(t.description||'-')+'</td><td style="color:var(--muted);font-size:0.78rem;">'+(t.createdDate?new Date(t.createdDate).toLocaleDateString():'-')+'</td><td><div style="display:flex;align-items:center;gap:0.5rem;">'+statusSel(t.ticketId||t.id)+'<button class="btn-primary" style="padding:2px 8px; background:#e63946; font-size:12px;" onclick="deleteTicket('+(t.ticketId||t.id)+')">🗑️</button></div></td></tr>';}
+    async function loadTickets(){
+      var el=document.getElementById('suppTickets');
+      try{
+        var list=await apiCall('/api/support');
+        document.getElementById('sTotal').textContent=list?list.length:0;
+        document.getElementById('sOpen').textContent=list?list.filter(function(t){return t.status==='OPEN';}).length:0;
+        document.getElementById('sInProgress').textContent=list?list.filter(function(t){return t.status==='IN_PROGRESS';}).length:0;
+        document.getElementById('sResolved').textContent=list?list.filter(function(t){return t.status==='RESOLVED';}).length:0;
+        if(!list||!list.length){el.innerHTML='<tr><td colspan="8" class="text-c text-m">No tickets</td></tr>';return;}
+        el.innerHTML=list.map(ticketRowFull).join('');
+      }catch(e){el.innerHTML='<tr><td colspan="8" class="text-c text-m">Failed to load</td></tr>';}
+    }
+    async function loadOpen(){
+      var el=document.getElementById('suppOpen');
+      try{
+        var list=await apiCall('/api/support');
+        var open=list?list.filter(function(t){return t.status==='OPEN'||t.status==='IN_PROGRESS';}):[];
+        if(!open.length){el.innerHTML='<tr><td colspan="7" class="text-c text-m">No open tickets</td></tr>';return;}
+        el.innerHTML=open.map(ticketRowShort).join('');
+      }catch(e){el.innerHTML='<tr><td colspan="7" class="text-c text-m">Failed to load</td></tr>';}
+    }
+    async function updateTicket(id,status){
+      if(!status)return;
+      try{await apiCall('/api/support/'+id+'/status',{method:'PUT',body:JSON.stringify({status:status})});toast('Ticket updated to '+status);loadTickets();loadOpen();}
+      catch(e){toast('Failed to update','error');}
+    }
+    async function deleteTicket(id){
+      if(!confirm('Are you sure you want to delete this ticket?'))return;
+      try{
+        await apiCall('/api/support/'+id,{method:'DELETE'});
+        toast('Ticket deleted successfully');
+        loadTickets();
+        loadOpen();
+      }catch(e){
+        toast('Failed to delete ticket','error');
+      }
+    }
+    loadTickets();
+  </script>
+<script src='theme.js'></script>
+</body>
+</html>
+

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Customer Dashboard - Starlight Bookstore</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Outfit:wght@400;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=5.0" />
+  <style>
+    .dashboard-container {
+      max-width: 1200px;
+      margin: 120px auto 40px;
+      padding: 0 2rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem;
+    }
+    .dash-card {
+      background: rgba(20, 20, 25, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 2rem;
+      text-align: center;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      text-decoration: none;
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+    .dash-card:hover {
+      transform: translateY(-5px);
+      border-color: var(--gold);
+      box-shadow: 0 10px 30px rgba(212, 163, 115, 0.2);
+    }
+    .dash-icon {
+      font-size: 3rem;
+      margin-bottom: 0.5rem;
+    }
+    .dash-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--gold);
+    }
+    .dash-desc {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+    .welcome-banner {
+      max-width: 1200px;
+      margin: 120px auto -80px;
+      padding: 2rem;
+      background: linear-gradient(135deg, rgba(212, 163, 115, 0.1) 0%, rgba(20, 20, 25, 0.8) 100%);
+      border: 1px solid var(--gold);
+      border-radius: 16px;
+      text-align: center;
+      backdrop-filter: blur(10px);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Full Page Background Video -->
+  <video autoplay muted loop playsinline class="bg-video">
+    <source src="assets/videos/background.mp4" type="video/mp4">
+  </video>
+  <div class="video-overlay"></div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
+
+  <!-- Navigation -->
+  <header class="navbar glass-nav" id="navbar">
+    <nav style="display:flex; align-items:center; gap:2rem; width:100%;">
+      <!-- Logo -->
+      <a href="index.html" class="logo nav-brand" style="text-decoration:none;">
+        <span class="logo-icon brand-icon">✨</span>
+        <h1 style="margin:0;">Starlight Bookstore</h1>
+      </a>
+
+      <!-- Links & Actions -->
+      <ul class="nav-links" style="margin:0; padding:0; align-items:center;">
+        <li><a href="index.html" class="nav-link">Home 🏠</a></li>
+        <li><a href="catalog.html" class="nav-link">Catalog</a></li>
+        <li class="auth-only dropdown" style="display:none;">
+          <a href="#" class="nav-link active" id="navAccountBtn" onclick="toggleAccountDropdown(event)">Account ⚙️</a>
+          <div class="dropdown-content account-dropdown" id="accountDropdownContent" style="width: 250px; padding: 0.5rem; right: 0; left: auto; background: rgba(20,20,20,0.95); border: 1px solid var(--gold); border-radius: 8px; z-index: 999; display:none; position:absolute;">
+            <a href="customer-dashboard.html" style="display:block; padding:0.5rem; text-decoration:none; color:var(--gold); transition:all 0.2s;">🏠 Dashboard</a>
+            <a href="profile.html" style="display:block; padding:0.5rem; text-decoration:none; color:var(--text); transition:all 0.2s;">👤 Profile</a>
+            <a href="orders.html" style="display:block; padding:0.5rem; text-decoration:none; color:var(--text); transition:all 0.2s;">📦 My Orders</a>
+            <a href="wishlist.html" style="display:block; padding:0.5rem; text-decoration:none; color:var(--text); transition:all 0.2s;">❤️ Wishlist</a>
+            <a href="support.html" style="display:block; padding:0.5rem; text-decoration:none; color:var(--text); transition:all 0.2s;">🎫 Support Tickets</a>
+            <hr style="border-color: rgba(255,255,255,0.1); margin: 0.5rem 0;">
+            <a href="#" onclick="logoutMPA(event)" style="display:block; padding:0.5rem; text-decoration:none; color:#ff6b6b; transition:all 0.2s;">🚪 Logout</a>
+          </div>
+        </li>
+      </ul>
+
+      <div class="nav-actions" style="display:flex; align-items:center; gap:1rem;">
+        <button onclick="logoutMPA()" class="btn-primary auth-only" style="display:none;">Log Out</button>
+        <div class="auth-only dropdown" style="display:none; position:relative;">
+          <button class="btn-primary" style="padding: 0.5rem 1rem;" onclick="toggleNotificationDropdown(event)">
+            🔔 <span id="notificationBadge" class="badge" style="display:none; background: #d4a373; color: black; border-radius: 50%; padding: 2px 6px; font-size: 12px; margin-left: 4px;">0</span>
+          </button>
+          <div class="dropdown-content notification-dropdown" id="notificationDropdownContent" style="width: 320px; padding: 1rem; right: 0; left: auto; display:none; position:absolute; background: rgba(20,20,20,0.95); border: 1px solid var(--gold); border-radius: 8px; z-index: 999; margin-top: 0.5rem;">
+            <!-- filled by JS -->
+          </div>
+        </div>
+
+        <button class="btn-primary cart-btn no-admin" onclick="window.location.href='cart.html'">
+          🛒 <span id="cartBadge" class="badge">0</span>
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+    <div class="welcome-banner scale-in" style="display:flex; justify-content:space-between; align-items:center; text-align:left; padding: 2rem;">
+      
+      <!-- Left side: Date/Time Widget -->
+      <div style="display:flex; flex-direction:column; justify-content:center; border-right: 1px solid rgba(212,163,115,0.3); padding-right: 2rem; min-width: 220px;">
+        <div id="widgetTime" style="font-size: 3.5rem; font-family: 'Outfit', sans-serif; font-weight: 700; color: var(--gold); line-height:1; text-shadow: 0 0 15px rgba(212,163,115,0.4);">
+          --:--
+        </div>
+        <div id="widgetDate" style="font-size: 0.95rem; color: var(--text-muted); margin-top: 0.8rem; text-transform: uppercase; letter-spacing: 2px; font-weight: 600;">
+          ---
+        </div>
+      </div>
+
+      <!-- Right side: Profile & Greeting -->
+      <div style="display:flex; align-items:center; gap: 2rem; flex:1; padding-left: 2rem;">
+        <!-- Profile Picture -->
+        <div style="width: 90px; height: 90px; border-radius: 50%; background: linear-gradient(135deg, rgba(212,163,115,0.2), rgba(20,20,25,0.9)); display:flex; align-items:center; justify-content:center; font-size: 3rem; border: 2px solid var(--gold); box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
+          🧑‍💼
+        </div>
+        <div>
+          <h2 style="margin:0; font-size: 1.8rem; font-weight: 400; color: var(--text);">
+            Hello <span id="dashboardUsername" class="gradient-text" style="font-weight:700;">Customer</span>,
+          </h2>
+          <h3 id="timeGreeting" style="margin: 0.3rem 0 0.8rem 0; font-size: 2rem; color: #fff; font-family: 'Outfit', sans-serif; letter-spacing: 0.5px;">
+            Good Morning...!
+          </h3>
+          <div style="display:inline-block; padding: 0.4rem 1rem; background: rgba(212,163,115,0.1); border-left: 3px solid var(--gold); border-radius: 0 8px 8px 0;">
+            <p style="margin: 0; color: var(--gold); font-style: italic; font-size: 0.95rem; font-weight: 300;">
+              "A room without books is like a body without a soul."
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dashboard-container">
+      <a href="catalog.html" class="dash-card scale-in" style="animation-delay: 0.1s;">
+        <div class="dash-icon">📚</div>
+        <div class="dash-title">Browse Catalog</div>
+        <div class="dash-desc">Discover our collection of books and find your next great read.</div>
+      </a>
+      
+      <a href="orders.html" class="dash-card scale-in" style="animation-delay: 0.2s;">
+        <div class="dash-icon">📦</div>
+        <div class="dash-title">My Orders</div>
+        <div class="dash-desc">View your past orders, track shipments, and download e-books.</div>
+      </a>
+      
+      <a href="wishlist.html" class="dash-card scale-in" style="animation-delay: 0.3s;">
+        <div class="dash-icon">❤️</div>
+        <div class="dash-title">My Wishlist</div>
+        <div class="dash-desc">Manage the books you've saved for later.</div>
+      </a>
+      
+      <a href="profile.html" class="dash-card scale-in" style="animation-delay: 0.4s;">
+        <div class="dash-icon">👤</div>
+        <div class="dash-title">Profile Settings</div>
+        <div class="dash-desc">Update your personal information and password.</div>
+      </a>
+      
+      <a href="support.html" class="dash-card scale-in" style="animation-delay: 0.5s;">
+        <div class="dash-icon">🎫</div>
+        <div class="dash-title">Support Tickets</div>
+        <div class="dash-desc">Get help with your orders or contact our support team.</div>
+      </a>
+    </div>
+  </main>
+
+  <script src="app.js?v=6.0"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      applyAuthState();
+      
+      const currentUser = JSON.parse(localStorage.getItem('sb_user') || 'null');
+      if (!currentUser) {
+        window.location.href = 'login.html';
+        return;
+      }
+      
+      if (currentUser.role === 'ADMIN' || currentUser.role === 'ROLE_ADMIN') {
+          window.location.href = 'admin-dashboard.html';
+          return;
+      }
+
+      document.getElementById('dashboardUsername').textContent = currentUser.username;
+      
+      startDateTimeWidget();
+    });
+
+    function startDateTimeWidget() {
+      function updateTime() {
+        const now = new Date();
+        
+        let hours = now.getHours();
+        let minutes = now.getMinutes();
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12; 
+        minutes = minutes < 10 ? '0' + minutes : minutes;
+        
+        const timeStr = `${hours}:${minutes} ${ampm}`;
+        const timeEl = document.getElementById('widgetTime');
+        if (timeEl) timeEl.textContent = timeStr;
+
+        const options = { weekday: 'long', month: 'long', day: 'numeric' };
+        const dateStr = now.toLocaleDateString('en-US', options);
+        const dateEl = document.getElementById('widgetDate');
+        if (dateEl) dateEl.textContent = dateStr;
+
+        const greetingEl = document.getElementById('timeGreeting');
+        if (greetingEl) {
+          const hour24 = now.getHours();
+          if (hour24 < 12) {
+            greetingEl.textContent = "Good Morning...!";
+          } else if (hour24 < 18) {
+            greetingEl.textContent = "Good Afternoon...!";
+          } else {
+            greetingEl.textContent = "Good Evening...!";
+          }
+        }
+      }
+      
+      updateTime();
+      setInterval(updateTime, 10000);
+    }
+  </script>
+<script src='theme.js'></script>
+</body>
+</html>
+

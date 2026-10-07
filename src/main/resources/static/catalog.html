@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Browse Books - Starlight Bookstore</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Outfit:wght@400;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=5.0" />
+</head>
+<body>
+  <!-- Full Page Background Video -->
+  <video autoplay muted loop playsinline class="bg-video">
+    <source src="assets/videos/background.mp4" type="video/mp4">
+  </video>
+  <div class="video-overlay"></div>
+
+  <!-- Navigation -->
+  <header class="navbar glass-nav" id="navbar">
+    <nav class="navbar" style="width:100%; padding:0; border:none; display:flex; justify-content:space-between; align-items:center;">
+      <a href="index.html" class="logo" style="text-decoration:none;">✨ Starlight Bookstore</a>
+      
+      <ul class="nav-links" style="display:flex; gap:1.5rem; list-style:none;">
+        <li><a href="index.html" class="nav-link">Home</a></li>
+        <li><a href="catalog.html" class="nav-link active">Browse Books</a></li>
+        <li><a href="wishlist.html" class="nav-link auth-only">Wishlist</a></li>
+        <li><a href="orders.html" class="nav-link auth-only">Orders</a></li>
+        <li><a href="support.html" class="nav-link auth-only">Support</a></li>
+        <li class="auth-only dropdown" style="display:none;">
+          <a href="#" class="nav-link" id="navAccountBtn" onclick="toggleAccountDropdown(event)">Account ▼</a>
+          <div class="dropdown-content account-dropdown" id="accountDropdownContent" style="width: 250px; padding: 0.5rem; right: 0; left: auto; background: rgba(20,20,20,0.95); border: 1px solid var(--gold); border-radius: 8px; z-index: 999; display:none; position:absolute;">
+            <a href="profile.html" style="display:block; padding:0.5rem; text-decoration:none; color:var(--text); transition:all 0.2s;">👤 Profile</a>
+            <a href="orders.html" style="display:block; padding:0.5rem; text-decoration:none; color:var(--text); transition:all 0.2s;">📦 My Orders</a>
+            <a href="wishlist.html" style="display:block; padding:0.5rem; text-decoration:none; color:var(--text); transition:all 0.2s;">❤️ Wishlist</a>
+            <a href="support.html" style="display:block; padding:0.5rem; text-decoration:none; color:var(--text); transition:all 0.2s;">🎫 Support Tickets</a>
+            <a href="change-password.html" style="display:block; padding:0.5rem; text-decoration:none; color:var(--text); transition:all 0.2s;">🔒 Change Password</a>
+            <hr style="border-color: rgba(255,255,255,0.1); margin: 0.5rem 0;">
+            <a href="#" onclick="logoutMPA(event)" style="display:block; padding:0.5rem; text-decoration:none; color:#ff6b6b; transition:all 0.2s;">🚪 Logout</a>
+          </div>
+        </li>
+        <li class="guest-only"><a href="login.html" class="nav-link">Sign In</a></li>
+        <li class="admin-only"><a href="admin-dashboard.html" class="nav-link text-green">Dashboard</a></li>
+        
+        <li class="auth-only dropdown" style="display:none;">
+          <a href="#" class="nav-link" onclick="toggleNotificationDropdown(event)">
+            🔔 <span id="notificationBadge" class="badge" style="display:none; background: #d4a373; color: black; border-radius: 50%; padding: 2px 6px; font-size: 12px; margin-left: 4px;">0</span>
+          </a>
+          <div class="dropdown-content notification-dropdown" id="notificationDropdownContent" style="width: 320px; padding: 1rem; right: 0; left: auto; display:none; position:absolute; background: rgba(20,20,20,0.95); border: 1px solid var(--gold); border-radius: 8px; z-index: 999;">
+            <!-- filled by JS -->
+          </div>
+        </li>
+        <li class="no-admin"><a href="cart.html" class="nav-link btn-primary btn-sm" style="color:#000;">🛒 Cart <span id="cartBadge" class="badge">0</span></a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="main-content" style="max-width: 1400px;">
+    <!-- Header Section -->
+    <section class="fade-in-up text-center" style="margin: 2rem 0;">
+      <h1 class="gradient-text" style="font-size: 3.5rem; margin-bottom: 0.5rem; font-family: 'Outfit', sans-serif;">Discover Your Next Great Read</h1>
+      <p class="text-muted" style="font-size: 1.2rem;">Explore thousands of books across different genres.</p>
+    </section>
+
+    <!-- Search Section -->
+    <section class="fade-in-up" style="margin-bottom: 2rem; display: flex; justify-content: center;">
+      <div class="glass-panel" style="display: flex; gap: 1rem; width: 100%; max-width: 800px; padding: 1rem; align-items: center;">
+        <span style="font-size: 1.5rem; margin-left: 0.5rem;">🔍</span>
+        <input type="text" id="advSearchInput" placeholder="Search by title, author, ISBN, or keyword..." style="flex-grow: 1; font-size: 1.1rem; padding: 0.8rem; border: none; background: transparent; color: var(--text); border-bottom: 2px solid var(--glass-b); border-radius: 0; outline: none;" onkeyup="if(event.key === 'Enter') applyAdvancedFilters()">
+        <button class="btn-primary" onclick="applyAdvancedFilters()" style="padding: 0.8rem 2rem;">Search</button>
+        <button class="btn-ghost" onclick="clearFilters()" style="padding: 0.8rem 1rem;">Clear</button>
+      </div>
+    </section>
+
+    <!-- Layout: Sidebar + Grid -->
+    <div style="display: grid; grid-template-columns: 280px 1fr; gap: 2rem; align-items: start;">
+      
+      <!-- Filter Sidebar -->
+      <aside class="glass-panel scale-in delay-1" style="position: sticky; top: 100px;">
+        <h3 style="margin-bottom: 1.5rem; border-bottom: 1px solid var(--glass-b); padding-bottom: 0.5rem;">Filter Books</h3>
+        
+        <div class="filter-group">
+          <label>Category</label>
+          <div class="checkbox-group">
+            <label><input type="checkbox" value="Fiction" class="filter-cat"> Fiction</label>
+            <label><input type="checkbox" value="Science" class="filter-cat"> Science</label>
+            <label><input type="checkbox" value="Business" class="filter-cat"> Business</label>
+            <label><input type="checkbox" value="Technology" class="filter-cat"> Technology</label>
+            <label><input type="checkbox" value="History" class="filter-cat"> History</label>
+            <label><input type="checkbox" value="Education" class="filter-cat"> Education</label>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <label>Language</label>
+          <select id="filterLang" class="form-input">
+            <option value="">Any Language</option>
+            <option value="English">English</option>
+            <option value="Sinhala">Sinhala</option>
+            <option value="Tamil">Tamil</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>Price Range</label>
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <input type="number" id="filterMinPrice" placeholder="Min" class="form-input" style="padding: 0.5rem;">
+            <span>-</span>
+            <input type="number" id="filterMaxPrice" placeholder="Max" class="form-input" style="padding: 0.5rem;">
+          </div>
+        </div>
+        
+        <div class="filter-group">
+          <label>Minimum Rating</label>
+          <select id="filterRating" class="form-input">
+            <option value="">Any Rating</option>
+            <option value="5">★★★★★ (5.0)</option>
+            <option value="4">★★★★☆ (4.0+)</option>
+            <option value="3">★★★☆☆ (3.0+)</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>Availability</label>
+          <div class="checkbox-group">
+            <label><input type="radio" name="availability" value="" checked> All</label>
+            <label><input type="radio" name="availability" value="In Stock"> In Stock</label>
+            <label><input type="radio" name="availability" value="Out of Stock"> Out of Stock</label>
+          </div>
+        </div>
+
+        <button class="btn-primary w-100" onclick="applyAdvancedFilters()" style="margin-top: 1rem;">Apply Filters</button>
+        <button class="btn-secondary w-100 auth-only" onclick="openSaveFilterModal()" style="margin-top: 1rem; display:none; padding: 1rem; font-size: 1.1rem; border-radius: 8px;" id="saveFilterBtn">💾 Save Filter</button>
+        <hr class="auth-only" style="border-color: rgba(255,255,255,0.1); margin: 1.5rem 0; display:block;" id="saveFilterSeparator">
+        <a href="saved-filters.html" class="btn-ghost w-100 auth-only" style="display:block; text-align:center; padding: 1rem 0; font-size: 1.05rem;" id="viewSavedFiltersLink">View Saved Filters ➔</a>
+      </aside>
+
+      <!-- Book Grid Area -->
+      <section>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;" class="glass-panel scale-in delay-2">
+          <div id="catalogResultCount" class="text-muted">Loading books...</div>
+          <div style="display: flex; align-items: center; gap: 1rem;">
+            <label style="white-space: nowrap;">Sort By:</label>
+            <select id="sortDropdown" class="form-input" style="padding: 0.5rem; width: auto;" onchange="applyAdvancedFilters()">
+              <option value="newest">Newest</option>
+              <option value="price_asc">Price Low → High</option>
+              <option value="price_desc">Price High → Low</option>
+              <option value="best_selling">Best Selling</option>
+              <option value="rating_desc">Highest Rated</option>
+              <option value="alpha_asc">Alphabetical Order</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="book-grid" id="advancedCatalogGrid">
+          <!-- Books will be injected here via app.js -->
+        </div>
+
+        <!-- Pagination -->
+        <div id="paginationContainer" style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 3rem; margin-bottom: 2rem;">
+          <!-- Pagination injected via JS -->
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="footer glass-nav">
+    <p>© 2026 <strong>Starlight Bookstore</strong> — Built with ❤️ on Spring Boot & Java 21</p>
+  </footer>
+
+  <!-- View Details Modal Overlay -->
+  <div id="bookDetailsModal" class="modal-overlay hidden">
+    <div class="modal glass-panel scale-in" style="max-width: 800px; width: 90%;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+        <h2 class="gradient-text" id="modalBookTitle" style="font-size: 2rem; margin: 0;">Book Title</h2>
+        <button class="btn-ghost" onclick="closeBookDetailsModal()" style="padding: 0.5rem; border-radius: 50%;">✖</button>
+      </div>
+      <div style="display: grid; grid-template-columns: 200px 1fr; gap: 2rem;">
+        <div>
+          <div id="modalBookCover" class="book-cover-art" style="height: 280px; font-size: 5rem; border-radius: 8px;">📚</div>
+          <div style="margin-top: 1rem; text-align: center;">
+            <div id="modalBookRating" style="color: var(--primary); font-size: 1.2rem; font-weight: bold; margin-bottom: 0.5rem;">★★★★★ 5.0</div>
+            <div id="modalBookPrice" style="font-size: 1.5rem; font-weight: bold;">Rs 0.00</div>
+            <div id="modalBookAvailability" style="margin-top: 0.5rem; font-size: 0.9rem;">In Stock</div>
+          </div>
+        </div>
+        <div>
+          <p><strong>Author:</strong> <span id="modalBookAuthor"></span></p>
+          <p><strong>Genre:</strong> <span id="modalBookGenre"></span></p>
+          <p><strong>Publisher:</strong> <span id="modalBookPublisher"></span></p>
+          <p><strong>Language:</strong> <span id="modalBookLanguage"></span></p>
+          <p><strong>Year:</strong> <span id="modalBookYear"></span></p>
+          <p><strong>ISBN:</strong> <span id="modalBookIsbn"></span></p>
+          <hr style="border-color: var(--glass-b); margin: 1.5rem 0;">
+          <p id="modalBookDescription" style="line-height: 1.6; color: var(--text-muted);"></p>
+          
+          <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+            <button class="btn-primary w-100" id="modalAddToCartBtn" style="padding: 1rem; font-size: 1.1rem;">Add to Cart 🛒</button>
+            <button class="btn-secondary w-100 auth-only" id="modalAddWishlistBtn" style="padding: 1rem; font-size: 1.1rem;">Add to Wishlist ❤️</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Save Filter Modal -->
+  <div id="saveFilterModal" class="modal-overlay hidden" style="z-index: 2000;">
+    <div class="modal glass-panel scale-in" style="max-width: 500px; width: 90%; text-align: center; margin: 10% auto;">
+      <h2 class="gradient-text" style="font-size: 2rem; margin-bottom: 1rem;">Save Filter</h2>
+      <p class="text-muted" style="margin-bottom: 1.5rem;">Enter a name to save your current search and filter preferences.</p>
+      <input type="text" id="saveFilterNameInput" class="form-input" placeholder="e.g. Sci-Fi Under $20" style="width: 100%; padding: 1rem; font-size: 1.1rem; margin-bottom: 1.5rem;" onkeyup="if(event.key === 'Enter') submitSaveFilter()">
+      <div style="display: flex; gap: 1rem;">
+        <button class="btn-ghost w-100" onclick="closeSaveFilterModal()" style="padding: 1rem; font-size: 1.1rem;">Cancel</button>
+        <button class="btn-primary w-100" onclick="submitSaveFilter()" style="padding: 1rem; font-size: 1.1rem;">Save Filter</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="app.js?v=6.0"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      applyAuthState();
+      // Redirect admin users away from the customer catalog
+      if (currentUser && currentUser.role === 'ADMIN') {
+        window.location.href = 'admin-books.html';
+        return;
+      }
+
+      // Handle search query from navbar
+      const urlParams = new URLSearchParams(window.location.search);
+      const q = urlParams.get('q') || urlParams.get('searchQuery');
+      
+      const cats = urlParams.get('categories');
+      if (cats && cats !== 'null') {
+          const catArray = cats.split(',');
+          document.querySelectorAll('.filter-cat').forEach(cb => {
+              if (catArray.includes(cb.value)) cb.checked = true;
+          });
+      }
+      
+      const lang = urlParams.get('language');
+      if (lang && lang !== 'null') document.getElementById('filterLang').value = lang;
+      
+      const minPrice = urlParams.get('minPrice');
+      if (minPrice && minPrice !== 'null') document.getElementById('filterMinPrice').value = minPrice;
+      
+      const maxPrice = urlParams.get('maxPrice');
+      if (maxPrice && maxPrice !== 'null') document.getElementById('filterMaxPrice').value = maxPrice;
+      
+      const minRating = urlParams.get('minRating');
+      if (minRating && minRating !== 'null') document.getElementById('filterRating').value = minRating;
+      
+      const avail = urlParams.get('availability');
+      if (avail && avail !== 'null') {
+          const radio = document.querySelector(`input[name="availability"][value="${avail}"]`);
+          if (radio) radio.checked = true;
+      }
+      if (q) {
+        const searchInput = document.getElementById('advSearchInput');
+        if (searchInput) searchInput.value = q;
+      }
+
+      // If we are directly on catalog.html, fetch catalog immediately
+      if (window.location.pathname.endsWith('catalog.html')) {
+        setTimeout(() => {
+          applyAdvancedFilters();
+        }, 100);
+      }
+    });
+  </script>
+<script src='theme.js'></script>
+</body>
+</html>
+

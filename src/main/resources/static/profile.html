@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Profile - Starlight Bookstore</title>
+  <meta name="description" content="View and update your Starlight Bookstore profile.">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Outfit:wght@400;700;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css?v=3.0"/>
+  <style>
+    .profile-wrap {
+      max-width: 700px;
+      margin: 3rem auto;
+      padding: 0 1.5rem;
+    }
+    .profile-hero {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      background: var(--glass);
+      border: 1px solid var(--glass-b);
+      border-radius: 20px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      backdrop-filter: blur(16px);
+      animation: fadeInUp 0.5s ease;
+    }
+    .profile-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: var(--grad);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.2rem;
+      font-weight: 900;
+      color: #000;
+      border: 3px solid var(--primary);
+      box-shadow: 0 0 20px rgba(212,175,55,0.4);
+      flex-shrink: 0;
+      position: relative;
+      cursor: pointer;
+      overflow: hidden;
+      background-size: cover;
+      background-position: center;
+      transition: transform 0.3s;
+    }
+    .profile-avatar:hover {
+      transform: scale(1.05);
+    }
+    .profile-avatar::after {
+      content: '📷';
+      position: absolute;
+      bottom: -30px;
+      left: 0;
+      right: 0;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      font-size: 1rem;
+      text-align: center;
+      padding: 0.2rem 0;
+      transition: bottom 0.3s;
+    }
+    .profile-avatar:hover::after {
+      bottom: 0;
+    }
+    .profile-info h2 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 900;
+      margin: 0 0 0.2rem 0;
+    }
+    .profile-info p {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin: 0 0 0.5rem 0;
+    }
+    .role-badge {
+      display: inline-block;
+      padding: 0.2rem 0.8rem;
+      border-radius: 100px;
+      background: rgba(212,175,55,0.15);
+      border: 1px solid var(--primary);
+      color: var(--accent);
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .section-card {
+      background: var(--glass);
+      border: 1px solid var(--glass-b);
+      border-radius: 20px;
+      padding: 2rem;
+      backdrop-filter: blur(16px);
+      margin-bottom: 1.5rem;
+      animation: fadeInUp 0.6s ease;
+    }
+    .section-card h3 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin: 0 0 1.5rem 0;
+      color: var(--primary);
+      border-bottom: 1px solid var(--glass-b);
+      padding-bottom: 0.75rem;
+    }
+    .form-group { margin-bottom: 1.2rem; }
+    .form-group label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .form-group input, .form-group textarea {
+      width: 100%;
+      background: rgba(0,0,0,0.4);
+      border: 1px solid var(--glass-b);
+      border-radius: 10px;
+      padding: 0.85rem 1rem;
+      color: var(--text);
+      font-size: 0.95rem;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      transition: border-color 0.3s, box-shadow 0.3s;
+      box-sizing: border-box;
+    }
+    .form-group input:focus, .form-group textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(212,175,55,0.12);
+    }
+    .form-group input[readonly] {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .quick-links { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .quick-link-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 1rem;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--glass-b);
+      border-radius: 12px;
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: all 0.3s;
+    }
+    .quick-link-btn:hover {
+      border-color: var(--primary);
+      background: rgba(212,175,55,0.08);
+      transform: translateY(-2px);
+    }
+    .quick-link-btn .ql-icon { font-size: 1.4rem; }
+    .msg-box {
+      padding: 0.8rem 1rem;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      display: none;
+      margin-bottom: 1rem;
+    }
+    .msg-box.success { background: rgba(74,222,128,0.1); border: 1px solid var(--green); color: var(--green); display: block; }
+    .msg-box.error   { background: rgba(239,68,68,0.1);  border: 1px solid #ef4444;     color: #f87171; display: block; }
+    .nav-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      transition: color 0.3s;
+    }
+    .nav-back:hover { color: var(--primary); }
+  </style>
+</head>
+<body>
+  <main class="main-content">
+    <div class="profile-wrap">
+      <a href="index.html" class="nav-back">← Back to Home</a>
+
+      <div class="profile-hero">
+        <input type="file" id="profilePicInput" accept="image/*" style="display: none;" onchange="uploadProfilePic(event)">
+        <div class="profile-avatar" id="avatarInitial" onclick="document.getElementById('profilePicInput').click()" title="Change Profile Picture">?</div>
+        <div class="profile-info">
+          <h2 id="profileUsername">Loading...</h2>
+          <p id="profileEmail">—</p>
+          <span class="role-badge" id="profileRole">—</span>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <h3>📋 Account Information</h3>
+        <div id="profileMsg" class="msg-box"></div>
+        <form id="profileForm" onsubmit="saveProfile(event)">
+          <div class="form-group">
+            <label>Username</label>
+            <input type="text" id="fieldUsername" placeholder="Enter new username..."/>
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="fieldEmail" placeholder="Enter new email..."/>
+          </div>
+          <div class="form-group">
+            <label>Delivery Address</label>
+            <input type="text" id="fieldAddress" placeholder="Enter your delivery address..."/>
+          </div>
+          <button type="submit" class="btn-primary">Save Changes</button>
+        </form>
+      </div>
+
+      <div class="section-card">
+        <h3>🔗 Quick Links</h3>
+        <div class="quick-links">
+          <a href="orders.html" class="quick-link-btn">
+            <span class="ql-icon">📦</span> My Orders
+          </a>
+          <a href="wishlist.html" class="quick-link-btn">
+            <span class="ql-icon">❤️</span> Wishlist
+          </a>
+          <a href="support.html" class="quick-link-btn">
+            <span class="ql-icon">🎫</span> Support Tickets
+          </a>
+          <a href="change-password.html" class="quick-link-btn">
+            <span class="ql-icon">🔐</span> Change Password
+          </a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const API = 'http://localhost:8080';
+    let token = localStorage.getItem('sb_token');
+    const storedUser = JSON.parse(localStorage.getItem('sb_user') || 'null');
+
+    if (!token || !storedUser) {
+      window.location.href = 'login.html';
+    }
+
+    function showMsg(msg, type) {
+      const box = document.getElementById('profileMsg');
+      box.textContent = msg;
+      box.className = 'msg-box ' + type;
+    }
+
+    async function loadProfile() {
+      try {
+        const res = await fetch(API + '/api/user/profile', {
+          headers: { 'Authorization': 'Bearer ' + token },
+          cache: 'no-store'
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+
+        document.getElementById('profileUsername').textContent = data.username || storedUser.username || '—';
+        document.getElementById('profileEmail').textContent = data.email || '—';
+        document.getElementById('profileRole').textContent = data.role || storedUser.role || '—';
+        document.getElementById('fieldUsername').value = data.username || '';
+        document.getElementById('fieldEmail').value = data.email || '';
+        document.getElementById('fieldAddress').value = data.address || '';
+
+        if (data.profilePicture && data.profilePicture !== "") {
+            document.getElementById('avatarInitial').textContent = '';
+            document.getElementById('avatarInitial').style.backgroundImage = `url('/uploads/profiles/${data.profilePicture}')`;
+        } else {
+            const initial = (data.username || 'U').charAt(0).toUpperCase();
+            document.getElementById('avatarInitial').textContent = initial;
+            document.getElementById('avatarInitial').style.backgroundImage = 'none';
+        }
+      } catch (err) {
+        // fallback from localStorage
+        const u = storedUser;
+        if (u) {
+          document.getElementById('profileUsername').textContent = u.username;
+          document.getElementById('profileEmail').textContent = u.email || '—';
+          document.getElementById('profileRole').textContent = u.role || '—';
+          document.getElementById('fieldUsername').value = u.username || '';
+          document.getElementById('fieldEmail').value = u.email || '';
+          document.getElementById('avatarInitial').textContent = u.username.charAt(0).toUpperCase();
+        }
+      }
+    }
+
+    async function saveProfile(e) {
+      e.preventDefault();
+      const address = document.getElementById('fieldAddress').value.trim();
+      const username = document.getElementById('fieldUsername').value.trim();
+      const email = document.getElementById('fieldEmail').value.trim();
+      try {
+        const res = await fetch(API + '/api/user/profile', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+          body: JSON.stringify({ address, username, email })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showMsg('✅ ' + data.message, 'success');
+          if (data.token) {
+              localStorage.setItem('sb_token', data.token);
+              token = data.token;
+          }
+          if (storedUser) {
+              storedUser.username = username;
+              storedUser.email = email;
+              localStorage.setItem('sb_user', JSON.stringify(storedUser));
+          }
+          document.getElementById('profileUsername').textContent = username;
+          document.getElementById('profileEmail').textContent = email;
+          document.getElementById('avatarInitial').textContent = username.charAt(0).toUpperCase();
+        } else {
+          showMsg('❌ ' + (data.message || 'Failed to save.'), 'error');
+        }
+      } catch (err) {
+        showMsg('❌ Connection error. Please try again.', 'error');
+      }
+    }
+
+    async function uploadProfilePic(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const res = await fetch(API + '/api/user/profile/picture', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + token
+          },
+          body: formData
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+          showMsg('✅ Profile picture updated!', 'success');
+          document.getElementById('avatarInitial').textContent = '';
+          document.getElementById('avatarInitial').style.backgroundImage = `url('/uploads/profiles/${data.profilePicture}')`;
+          
+          // update local storage user if needed
+          if (storedUser) {
+              storedUser.profilePicture = data.profilePicture;
+              localStorage.setItem('sb_user', JSON.stringify(storedUser));
+          }
+        } else {
+          showMsg('❌ ' + (data.message || 'Failed to upload picture.'), 'error');
+        }
+      } catch (err) {
+        showMsg('❌ Error uploading picture.', 'error');
+      }
+    }
+
+    loadProfile();
+  </script>
+<script src='theme.js'></script>
+</body>
+</html>
+

@@ -1,0 +1,8 @@
+Line 364: <div class="book-cover-art" style="background:${coverGradient(i)}">${b.coverImage ? `<img src="/uploads/covers/${b.coverImage}" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;"/>` : '📖'}</div>
+Line 504: <div class="cart-item-emoji" style="font-size:3rem; background:var(--surface); padding:1rem; border-radius:12px;">${item.book.coverImage ? `<img src="/uploads/covers/${item.book.coverImage}" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;"/>` : '📖'}</div>
+Line 679: <div class="book-cover-art" style="font-size:4rem;">${book.coverImage ? `<img src="/uploads/covers/${book.coverImage}" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;"/>` : '📖'}</div>
+Line 854: <td>${b.coverImage ? `<img src="/uploads/covers/${b.coverImage}" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;"/>` : '📖'} ${b.title}</td>
+Line 1036: <div class="book-cover-art" style="background:${coverGradient(i)}">${b.coverImage ? `<img src="/uploads/covers/${b.coverImage}" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;"/>` : '📖'}</div>
+Line 1091: document.getElementById('detailCoverEmoji').innerHTML = book.coverImage ? `<img src='/uploads/covers/${book.coverImage}' style='width:100%; height:100%; object-fit:cover; border-radius:inherit;'/>` : '📖';
+Line 1163: <div class="book-cover-art" style="background:${coverGradient(i)}">${b.coverImage ? `<img src="/uploads/covers/${b.coverImage}" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;"/>` : '📖'}</div>
+Line 1228: <td style="font-size:2rem;">${b.coverImage ? `<img src="/uploads/covers/${b.coverImage}" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;"/>` : '📖'}</td>

@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login - Starlight Bookstore</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Outfit:wght@400;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=3.0" />
+  <style>
+    body { display: flex; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; background: #000; }
+    .auth-container { width: 100%; max-width: 450px; padding: 3rem; text-align: center; z-index: 10; }
+    
+    /* LAMP STYLES */
+    body.lamp-off .video-overlay,
+    body.lamp-off .bg-video {
+      filter: brightness(0.05);
+      transition: filter 1.5s ease-in-out;
+    }
+    body:not(.lamp-off) .video-overlay,
+    body:not(.lamp-off) .bg-video {
+      filter: sepia(0.6) hue-rotate(-15deg) saturate(1.5) brightness(0.8) contrast(1.1);
+      transition: filter 1.5s ease-in-out;
+    }
+    
+    .flame-ambient-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: radial-gradient(circle at 12% 350px, rgba(255, 140, 0, 0.2) 0%, rgba(200, 50, 0, 0.08) 40%, rgba(0,0,0,0.6) 100%);
+      z-index: 5;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 1.5s ease-in-out;
+      mix-blend-mode: overlay;
+    }
+    body:not(.lamp-off) .flame-ambient-overlay {
+      opacity: 1;
+      animation: ambientFlicker 2s infinite alternate;
+    }
+    @keyframes ambientFlicker {
+      0% { opacity: 0.7; }
+      100% { opacity: 1; }
+    }
+
+    .darkness-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: radial-gradient(circle at 10% 250px, transparent 0%, rgba(0,0,0,0.95) 450px, #000 100%);
+      z-index: 998;
+      pointer-events: none;
+      transition: opacity 1.5s ease-in-out;
+      opacity: 0;
+    }
+    body.lamp-off .darkness-overlay {
+      opacity: 1;
+      pointer-events: auto; /* Block interactions when dark */
+    }
+
+    body.lamp-off .auth-container {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 1.5s ease-in-out;
+    }
+    body:not(.lamp-off) .auth-container {
+      opacity: 1;
+      pointer-events: auto;
+      transition: opacity 1.5s ease-in-out 0.3s;
+      box-shadow: 0 0 50px rgba(255, 120, 0, 0.15), inset 0 0 20px rgba(255, 120, 0, 0.05);
+      border: 1px solid rgba(255, 150, 50, 0.2);
+    }
+
+    .lamp-container {
+      position: fixed;
+      top: -10px;
+      left: 12%;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transform: scale(2.2);
+      transform-origin: top center;
+    }
+    .lamp-wire { width: 4px; height: 80px; background: #111; border-left: 1px solid #333; }
+    .lamp-head { width: 60px; height: 35px; background: #222; border-radius: 30px 30px 0 0; position: relative; box-shadow: inset 0 -2px 0 #555; }
+    
+    .lamp-flame {
+      width: 14px; height: 24px;
+      background: #fff3d6;
+      border-radius: 50% 50% 30% 30%;
+      position: absolute; bottom: -12px; left: 23px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      box-shadow: 0 0 15px 5px rgba(255,165,0,0.8), 0 0 30px 10px rgba(255,69,0,0.6);
+      z-index: 2;
+    }
+    body:not(.lamp-off) .lamp-flame {
+      opacity: 1;
+      animation: flameFlicker 0.15s infinite alternate;
+    }
+    @keyframes flameFlicker {
+      0% { transform: scale(1) skewX(-2deg); box-shadow: 0 0 15px 5px rgba(255,165,0,0.8), 0 0 35px 15px rgba(255,69,0,0.6); }
+      100% { transform: scale(1.1) skewX(2deg); box-shadow: 0 0 20px 8px rgba(255,165,0,0.9), 0 0 40px 20px rgba(255,69,0,0.7); }
+    }
+    
+    .lamp-string {
+      width: 2px; height: 80px; background: #888;
+      position: absolute; top: 115px; left: 50%; transform: translateX(-50%);
+      cursor: pointer; transition: height 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 1;
+    }
+    .lamp-string::after {
+      content: ''; width: 14px; height: 14px; background: var(--primary); border-radius: 50%;
+      position: absolute; bottom: 0; left: -6px; box-shadow: inset -2px -2px 5px rgba(0,0,0,0.5);
+    }
+    .lamp-string.pulled { height: 120px; }
+    
+    /* Small instruction text when dark */
+    .lamp-instruction {
+      position: absolute;
+      top: 220px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: rgba(255,255,255,0.4);
+      font-size: 0.9rem;
+      font-family: 'Outfit', sans-serif;
+      width: max-content;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 1s;
+    }
+    body.lamp-off .lamp-instruction {
+      opacity: 1;
+      animation: pulseText 2s infinite alternate 2s;
+    }
+    @keyframes pulseText {
+      0% { opacity: 0.2; }
+      100% { opacity: 0.7; }
+    }
+  </style>
+</head>
+<body class="lamp-off">
+
+  <!-- Interactive Lamp -->
+  <div class="lamp-container">
+    <div class="lamp-wire"></div>
+    <div class="lamp-head">
+      <div class="lamp-flame"></div>
+    </div>
+    <div class="lamp-string" onclick="toggleLamp()"></div>
+    <div class="lamp-instruction">Pull to illuminate</div>
+  </div>
+  <div class="darkness-overlay"></div>
+  <div class="flame-ambient-overlay"></div>
+
+  <!-- Background Video -->
+  <video autoplay muted loop playsinline class="bg-video">
+    <source src="assets/videos/login-bg.mp4" type="video/mp4">
+  </video>
+  <div class="video-overlay"></div>
+
+  <div class="glass-panel scale-in auth-container">
+    <div style="margin-bottom: 2rem;">
+      <div id="authModalIcon" style="font-size: 4rem; margin-bottom: 1rem; filter: drop-shadow(0 4px 10px rgba(139,92,246,0.5));">🔐</div>
+      <h2 id="authModalTitle" class="gradient-text" style="font-size:2.2rem; margin-bottom: 0;">Sign In</h2>
+    </div>
+    
+    <form id="authForm">
+      <div class="form-group">
+        <label style="text-align:left; display:block;">Username</label>
+        <div class="input-with-icon" style="position:relative;">
+          <span style="position:absolute; left:1rem; top:50%; transform:translateY(-50%); font-size:1.1rem;">👤</span>
+          <input type="text" id="authUsername" required style="padding-left: 2.8rem;">
+        </div>
+      </div>
+      
+      <div class="form-group" id="authEmailGroup" style="display:none;">
+        <label style="text-align:left; display:block;">Email</label>
+        <div class="input-with-icon" style="position:relative;">
+          <span style="position:absolute; left:1rem; top:50%; transform:translateY(-50%); font-size:1.1rem;">✉️</span>
+          <input type="email" id="authEmail" style="padding-left: 2.8rem;">
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label style="text-align:left; display:block;">Password</label>
+        <div class="input-with-icon" style="position:relative;">
+          <span style="position:absolute; left:1rem; top:50%; transform:translateY(-50%); font-size:1.1rem;">🔑</span>
+          <input type="password" id="authPassword" required style="padding-left: 2.8rem;">
+        </div>
+        <div style="text-align:right; margin-top:0.5rem;" id="forgotPwdLinkGroup">
+          <a href="forgot-password.html" style="color:var(--text-muted); font-size:0.85rem; text-decoration:none; transition: color 0.2s;">Forgot Password?</a>
+        </div>
+      </div>
+      
+      <input type="hidden" id="authMode" value="login">
+      <button type="submit" class="btn-primary w-100 mt-2" id="authSubmitBtn" style="font-size:1.1rem; padding: 1rem;">Sign In</button>
+    </form>
+    
+    <p style="margin-top:2rem; text-align:center; font-size:1rem;">
+      <a href="#" id="authToggleLink" style="color:var(--cyan); font-weight:600; text-decoration:none;" onclick="toggleStandaloneMode()">Need an account? Sign up ✨</a>
+    </p>
+    
+    <div style="margin-top: 1.5rem;">
+      <a href="index.html" class="text-muted" style="text-decoration:none; font-size:0.9rem;">← Back to Store</a>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="app.js?v=6.0"></script>
+  <script>
+    // Standalone login script
+    function toggleLamp() {
+      const string = document.querySelector('.lamp-string');
+      string.classList.add('pulled');
+      setTimeout(() => {
+        string.classList.remove('pulled');
+        document.body.classList.toggle('lamp-off');
+      }, 200);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('mode') === 'register') {
+        document.getElementById('authMode').value = 'register';
+        document.getElementById('authModalIcon').textContent = '✨';
+        document.getElementById('authModalTitle').textContent = 'Create Account';
+        document.getElementById('authEmailGroup').style.display = 'block';
+        document.getElementById('authEmail').required = true;
+        document.getElementById('authSubmitBtn').textContent = 'Sign Up 🚀';
+        document.getElementById('authToggleLink').textContent = 'Already have an account? Sign In 🔐';
+        document.getElementById('forgotPwdLinkGroup').style.display = 'none';
+      }
+
+      const form = document.getElementById('authForm');
+      if (form) {
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const mode = document.getElementById('authMode').value;
+          const username = document.getElementById('authUsername').value;
+          const password = document.getElementById('authPassword').value;
+    
+          if (mode === 'login') {
+            try {
+              const res = await fetch((typeof API !== 'undefined' ? API : 'http://localhost:8080') + '/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+              });
+              if (!res.ok) {
+                const err = await res.json().catch(()=>({}));
+                throw new Error(err.message || 'Invalid credentials');
+              }
+              const data = await res.json();
+              localStorage.setItem('sb_token', data.token);
+              localStorage.setItem('sb_user', JSON.stringify(data));
+              
+              const overlay = document.createElement('div');
+              overlay.style.position = 'fixed';
+              overlay.style.top = '0';
+              overlay.style.left = '0';
+              overlay.style.width = '100vw';
+              overlay.style.height = '100vh';
+              overlay.style.backgroundColor = 'rgba(11, 14, 26, 0.9)';
+              overlay.style.display = 'flex';
+              overlay.style.flexDirection = 'column';
+              overlay.style.justifyContent = 'center';
+              overlay.style.alignItems = 'center';
+              overlay.style.zIndex = '9999';
+              overlay.style.color = '#fff';
+              overlay.style.backdropFilter = 'blur(10px)';
+              overlay.style.transition = 'opacity 0.3s ease';
+              
+              overlay.innerHTML = `
+                <div style="font-size: 4rem; margin-bottom: 1rem;">✅</div>
+                <h2 style="font-size: 2.5rem; margin-bottom: 1rem; text-align: center; font-family: 'Outfit', sans-serif;" class="gradient-text">Logged in successfully!</h2>
+                <p style="font-size: 1.5rem; text-align: center; color: var(--admin-gold); font-family: 'Inter', sans-serif;">උගතමනා ශිල්පයමයි මතු රැකෙනා</p>
+              `;
+              
+              document.body.appendChild(overlay);
+              
+              setTimeout(() => {
+                const role = data.role;
+                if (role === 'ADMIN') window.location.href = 'admin-dashboard.html';
+                else if (role === 'OWNER') window.location.href = 'owner-dashboard.html';
+                else if (role === 'OPERATIONS') window.location.href = 'operations-dashboard.html';
+                else if (role === 'INVENTORY') window.location.href = 'inventory-dashboard.html';
+                else if (role === 'SUPPORT') window.location.href = 'support-dashboard.html';
+                else if (role === 'FINANCE') window.location.href = 'finance-dashboard.html';
+                else window.location.href = 'index.html';
+              }, 2500); // Wait 2.5 seconds to read the message
+            } catch (err) {
+              if (typeof showToast !== 'undefined') showToast(err.message, 'error');
+              else alert('Error: ' + err.message);
+            }
+          } else {
+            const email = document.getElementById('authEmail').value;
+            try {
+              const res = await fetch((typeof API !== 'undefined' ? API : 'http://localhost:8080') + '/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, email, password })
+              });
+              if (!res.ok) {
+                const err = await res.json().catch(()=>({}));
+                throw new Error(err.message || 'Registration failed');
+              }
+              if (typeof showToast !== 'undefined') showToast('Registration successful! Please sign in.', 'success');
+              else alert('Registration successful! Please sign in.');
+              toggleStandaloneMode();
+            } catch (err) {
+              if (typeof showToast !== 'undefined') showToast(err.message, 'error');
+              else alert('Error: ' + err.message);
+            }
+          }
+        });
+      }
+    });
+
+    function toggleStandaloneMode() {
+      const modeEl = document.getElementById('authMode');
+      const newMode = modeEl.value === 'login' ? 'register' : 'login';
+      modeEl.value = newMode;
+      
+      if (newMode === 'register') {
+        document.getElementById('authModalIcon').textContent = '✨';
+        document.getElementById('authModalTitle').textContent = 'Create Account';
+        document.getElementById('authEmailGroup').style.display = 'block';
+        document.getElementById('authEmail').required = true;
+        document.getElementById('authSubmitBtn').textContent = 'Sign Up 🚀';
+        document.getElementById('authToggleLink').textContent = 'Already have an account? Sign In 🔐';
+        document.getElementById('forgotPwdLinkGroup').style.display = 'none';
+      } else {
+        document.getElementById('authModalIcon').textContent = '🔐';
+        document.getElementById('authModalTitle').textContent = 'Welcome Back';
+        document.getElementById('authEmailGroup').style.display = 'none';
+        document.getElementById('authEmail').required = false;
+        document.getElementById('authSubmitBtn').textContent = 'Sign In';
+        document.getElementById('authToggleLink').textContent = 'Need an account? Sign up ✨';
+        document.getElementById('forgotPwdLinkGroup').style.display = 'block';
+      }
+    }
+  </script>
+<script src='theme.js'></script>
+</body>
+</html>
+

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Track Order - Starlight</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Outfit:wght@400;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=5.0" />
+  <style>
+    body { background-color: #0B0C10; color: #F8F1E7; min-height: 100vh; display: flex; flex-direction: column; }
+    .track-container { max-width: 800px; margin: 4rem auto; width: 90%; flex: 1; }
+    .glass-panel { background: rgba(20,20,20,0.6); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(212,175,55,0.2); border-radius: 16px; padding: 3rem; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+    
+    .timeline { position: relative; margin: 3rem 0; padding-left: 2rem; list-style: none; }
+    .timeline::before { content: ''; position: absolute; left: 6px; top: 0; bottom: 0; width: 2px; background: rgba(255,255,255,0.1); }
+    
+    .timeline-item { position: relative; margin-bottom: 2.5rem; opacity: 0.5; transition: 0.3s; }
+    .timeline-item:last-child { margin-bottom: 0; }
+    .timeline-item.active { opacity: 1; }
+    .timeline-item.completed { opacity: 1; }
+    
+    .timeline-item::before {
+      content: ''; position: absolute; left: -2rem; top: 4px; width: 14px; height: 14px;
+      border-radius: 50%; background: #222; border: 2px solid rgba(255,255,255,0.2); z-index: 2;
+    }
+    
+    .timeline-item.completed::before { background: #d4a373; border-color: #d4a373; box-shadow: 0 0 10px rgba(212,163,115,0.6); }
+    .timeline-item.active::before { background: #0B0C10; border-color: #d4a373; box-shadow: 0 0 10px rgba(212,163,115,0.6); }
+    
+    /* Dynamic line connecting completed nodes */
+    .timeline-item.completed::after {
+      content: ''; position: absolute; left: calc(-2rem + 6px); top: 18px; width: 2px; height: calc(100% + 2.5rem - 18px);
+      background: #d4a373; z-index: 1;
+    }
+    .timeline-item:last-child::after { display: none; }
+    
+    .step-title { font-weight: 700; font-size: 1.2rem; color: #fff; display: flex; align-items: center; gap: 0.8rem; }
+    .step-desc { font-size: 0.95rem; color: #aaa; margin-top: 0.3rem; }
+    .step-date { font-size: 0.85rem; color: #d4a373; margin-top: 0.4rem; font-family: monospace; font-weight: 600; }
+    
+    .emoji { font-size: 1.6rem; background: rgba(255,255,255,0.05); padding: 0.5rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; width: 45px; height: 45px; border: 1px solid rgba(255,255,255,0.1); }
+    .timeline-item.active .emoji, .timeline-item.completed .emoji { border-color: rgba(212,163,115,0.4); background: rgba(212,163,115,0.1); }
+  </style>
+</head>
+<body>
+  <div class="bg-orbs"><div class="orb orb1"></div><div class="orb orb2"></div></div>
+
+  <header class="navbar glass-nav" id="navbar">
+    <nav class="navbar">
+      <div class="logo">
+        <span class="logo-icon">✨</span>
+        <a href="index.html" style="color:white;text-decoration:none;"><h1>Starlight</h1></a>
+      </div>
+      <ul class="nav-links">
+        <li><a href="index.html" class="nav-link">← Back to Store</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="track-container">
+    <div class="glass-panel scale-in" id="trackPanel">
+      <h2 class="gradient-text" style="text-align:center; font-family: 'Outfit'; font-size: 2rem;">Track Your Order</h2>
+      <p style="text-align:center; color:#aaa; margin-top: 0.5rem;" id="orderIdText">Loading order details...</p>
+      
+      <ul class="timeline" id="timeline" style="display:none;">
+        <li class="timeline-item" id="step-PENDING">
+          <div class="step-title"><div class="emoji">📦</div> Order Placed</div>
+          <div class="step-desc">We have received your order and are currently processing it.</div>
+          <div class="step-date" id="date-PENDING">--</div>
+        </li>
+        <li class="timeline-item" id="step-PACKED">
+          <div class="step-title"><div class="emoji">🏷️</div> Packed & Ready</div>
+          <div class="step-desc">Your order is packed and waiting for courier pickup.</div>
+          <div class="step-date" id="date-PACKED">--</div>
+        </li>
+        <li class="timeline-item" id="step-SHIPPED">
+          <div class="step-title"><div class="emoji">🚚</div> Shipped to Facility</div>
+          <div class="step-desc">Your order is on the way to the delivery facility.</div>
+          <div class="step-date" id="date-SHIPPED">--</div>
+        </li>
+        <li class="timeline-item" id="step-DELIVERED">
+          <div class="step-title"><div class="emoji">🎉</div> Delivered</div>
+          <div class="step-desc">Your order has been delivered. Enjoy your books!</div>
+          <div class="step-date" id="date-DELIVERED">--</div>
+        </li>
+      </ul>
+      
+      <div id="errorMsg" style="display:none; color:#ef4444; text-align:center; margin-top:2rem; padding: 1rem; border: 1px solid rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.05); border-radius: 8px;"></div>
+    </div>
+  </main>
+
+  <script>
+    const orderId = new URLSearchParams(window.location.search).get('id');
+    const API = 'http://localhost:8080';
+    
+    function formatDate(date) {
+      return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' }).format(date);
+    }
+    
+    function addDays(date, days) {
+      const d = new Date(date);
+      d.setDate(d.getDate() + days);
+      return d;
+    }
+
+    async function loadOrder() {
+      if (!orderId) {
+        document.getElementById('orderIdText').textContent = 'No Order ID provided.';
+        return;
+      }
+      
+      try {
+        const token = localStorage.getItem('sb_token');
+        const headers = token ? { 'Authorization': 'Bearer ' + token } : {};
+        const res = await fetch(`${API}/api/orders/${orderId}`, { headers });
+        
+        if (!res.ok) throw new Error('Order not found. Please verify the ID or log in if this is a private order.');
+        const order = await res.json();
+        
+        document.getElementById('orderIdText').innerHTML = `Order <strong>#${order.id}</strong> — Status: <span style="color:#d4a373; font-weight:600;">${order.status}</span>`;
+        document.getElementById('timeline').style.display = 'block';
+        
+        const created = new Date(order.createdAt);
+        document.getElementById('date-PENDING').textContent = formatDate(created);
+        
+        // Estimated dates
+        document.getElementById('date-PACKED').textContent = 'Est: ' + formatDate(addDays(created, 1));
+        document.getElementById('date-SHIPPED').textContent = 'Est: ' + formatDate(addDays(created, 2));
+        document.getElementById('date-DELIVERED').textContent = 'Est: ' + formatDate(addDays(created, 4));
+        
+        const statuses = ['PENDING', 'PACKED', 'SHIPPED', 'DELIVERED'];
+        
+        if (order.status === 'CANCELLED') {
+           document.getElementById('orderIdText').innerHTML = `Order <strong>#${order.id}</strong> — Status: <span style="color:#ef4444; font-weight:600;">CANCELLED</span>`;
+           document.getElementById('timeline').style.display = 'none';
+           return;
+        }
+        
+        let currentIndex = statuses.indexOf(order.status);
+        if(currentIndex === -1) currentIndex = 0;
+        
+        statuses.forEach((s, idx) => {
+          const el = document.getElementById(`step-${s}`);
+          if (idx < currentIndex) {
+            el.classList.add('completed');
+            if(idx > 0) document.getElementById(`date-${s}`).textContent = 'Completed'; 
+          } else if (idx === currentIndex) {
+            el.classList.add('active');
+            if(idx > 0) document.getElementById(`date-${s}`).textContent = 'In Progress';
+          }
+        });
+        
+      } catch (err) {
+        document.getElementById('orderIdText').style.display = 'none';
+        const errEl = document.getElementById('errorMsg');
+        errEl.style.display = 'block';
+        errEl.textContent = err.message;
+      }
+    }
+    
+    loadOrder();
+  </script>
+<script src='theme.js'></script>
+</body>
+</html>
+

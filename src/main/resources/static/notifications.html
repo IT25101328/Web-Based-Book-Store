@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Notifications | Starlight Bookstore</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Outfit:wght@400;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=6.0" />
+  <style>
+    .notifications-layout {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .notification-card {
+      padding: 1.5rem;
+      border-radius: 12px;
+      margin-bottom: 1rem;
+      transition: all 0.3s ease;
+      border: 1px solid var(--glass-b);
+      background: rgba(255, 255, 255, 0.03);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeInUp 0.5s forwards;
+    }
+    .notification-card.unread {
+      background: rgba(220, 165, 74, 0.1);
+      border: 1px solid var(--gold);
+      box-shadow: 0 0 15px rgba(220, 165, 74, 0.1);
+    }
+    .notification-card:hover {
+      transform: translateY(-2px);
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .notification-content {
+      flex: 1;
+    }
+    .notification-title {
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-bottom: 0.3rem;
+      color: var(--text);
+    }
+    .notification-message {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 0.5rem;
+    }
+    .notification-date {
+      font-size: 0.8rem;
+      color: #777;
+    }
+    .notification-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    @keyframes fadeInUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-orbs"><div class="orb orb1"></div><div class="orb orb2"></div></div>
+
+  <!-- Navigation -->
+  <header class="navbar glass-nav" id="navbar">
+    <nav class="navbar" style="width:100%; padding:0; border:none; display:flex; justify-content:space-between; align-items:center;">
+      <a href="index.html" class="logo" style="text-decoration:none;">✨ Starlight</a>
+      
+      <ul class="nav-links" style="display:flex; gap:1.5rem; list-style:none;">
+        <li><a href="index.html" class="nav-link">Home</a></li>
+        <li><a href="catalog.html" class="nav-link">Browse Books</a></li>
+        <li><a href="wishlist.html" class="nav-link auth-only" style="display:none;">Wishlist</a></li>
+        <li><a href="orders.html" class="nav-link auth-only" style="display:none;">Orders</a></li>
+        <li><a href="support.html" class="nav-link auth-only" style="display:none;">Support</a></li>
+        
+        <li class="auth-only dropdown" style="display:none;">
+          <a href="#" class="nav-link" onclick="toggleNotificationDropdown(event)">
+            🔔 <span id="notificationBadge" class="badge" style="display:none; background: #d4a373; color: black; border-radius: 50%; padding: 2px 6px; font-size: 12px; margin-left: 4px;">0</span>
+          </a>
+          <div class="dropdown-content notification-dropdown" id="notificationDropdownContent" style="width: 320px; padding: 1rem; right: 0; left: auto; display:none; position:absolute; background: rgba(20,20,20,0.95); border: 1px solid var(--gold); border-radius: 8px; z-index: 999;">
+            <!-- filled by JS -->
+          </div>
+        </li>
+
+        <li class="auth-only dropdown" style="display:none;">
+          <a href="#" class="nav-link" id="navAccountBtn" onclick="toggleAccountDropdown(event)">Account ▼</a>
+          <div class="dropdown-content account-dropdown" id="accountDropdownContent" style="width: 250px; padding: 0.5rem; right: 0; left: auto; background: rgba(20,20,20,0.95); border: 1px solid var(--gold); border-radius: 8px; z-index: 999; display:none; position:absolute;">
+            <a href="profile.html" style="display:block; padding:0.5rem; text-decoration:none; color:var(--text); transition:all 0.2s;">👤 Profile</a>
+            <a href="orders.html" style="display:block; padding:0.5rem; text-decoration:none; color:var(--text); transition:all 0.2s;">📦 My Orders</a>
+            <a href="wishlist.html" style="display:block; padding:0.5rem; text-decoration:none; color:var(--text); transition:all 0.2s;">❤️ Wishlist</a>
+            <a href="support.html" style="display:block; padding:0.5rem; text-decoration:none; color:var(--text); transition:all 0.2s;">🎫 Support Tickets</a>
+            <a href="change-password.html" style="display:block; padding:0.5rem; text-decoration:none; color:var(--text); transition:all 0.2s;">🔒 Change Password</a>
+            <hr style="border-color: rgba(255,255,255,0.1); margin: 0.5rem 0;">
+            <a href="#" onclick="logoutMPA(event)" style="display:block; padding:0.5rem; text-decoration:none; color:#ff6b6b; transition:all 0.2s;">🚪 Logout</a>
+          </div>
+        </li>
+        <li class="guest-only"><a href="login.html" class="nav-link">Sign In</a></li>
+        <li class="auth-only" style="display:none;"><a href="cart.html" class="nav-link btn-primary btn-sm" style="color:#000;">🛒 Cart <span id="cartBadge" class="badge">0</span></a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="main-content" style="max-width: 1400px; margin-top: 4rem;">
+    <!-- Header Section -->
+    <section class="fade-in-up text-center" style="margin-bottom: 3rem;">
+      <h1 class="gradient-text" style="font-size: 3.5rem; margin-bottom: 0.5rem; font-family: 'Outfit', sans-serif;">My Notifications</h1>
+      <p class="text-muted" style="font-size: 1.2rem;">Stay updated with your orders and account activities.</p>
+    </section>
+
+    <!-- Notifications List -->
+    <section class="notifications-layout" id="notificationsPageList">
+      <div class="text-center fade-in-up" style="padding: 3rem;">
+        <p class="text-muted">Loading notifications...</p>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast"></div>
+  <script src="app.js?v=8.0"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      applyAuthState();
+      if (!token) {
+        window.location.href = 'login.html';
+        return;
+      }
+      loadNotificationsPage();
+    });
+  </script>
+<script src='theme.js'></script>
+</body>
+</html>
+

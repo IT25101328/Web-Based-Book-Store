@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Starlight Bookstore</title>
+  <meta name="description" content="Discover your next great read at Starlight Bookstore – a vibrant online bookstore." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Outfit:wght@400;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css?v=5.0" />
+  <style>
+    .menu-item { display:block; padding:0.6rem 0.8rem; text-decoration:none; color:var(--text); transition:all 0.2s; border-radius:4px; font-weight: 500; }
+    .menu-item:hover { color:var(--primary); background:rgba(255,255,255,0.05); }
+    .menu-item.logout { color:#ff6b6b; }
+    .menu-item.logout:hover { color:#ff4c4c; background:rgba(255,107,107,0.1); }
+    
+    /* Fix dropdown gap */
+    .dropdown { position: relative; }
+    .dropdown::after { content: ''; position: absolute; top: 100%; left: 0; width: 100%; height: 20px; }
+
+    /* LAMP STYLES */
+    body.lamp-off .video-overlay,
+    body.lamp-off .bg-video {
+      filter: brightness(0.05);
+      transition: filter 1.5s ease-in-out;
+    }
+    body:not(.lamp-off) .video-overlay,
+    body:not(.lamp-off) .bg-video {
+      filter: sepia(0.4) hue-rotate(-15deg) saturate(1.2) brightness(0.9);
+      transition: filter 1.5s ease-in-out;
+    }
+    
+    .flame-ambient-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: radial-gradient(circle at 12% 350px, rgba(255, 140, 0, 0.15) 0%, rgba(200, 50, 0, 0.05) 40%, transparent 100%);
+      z-index: 5;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 1.5s ease-in-out;
+      mix-blend-mode: overlay;
+    }
+    body:not(.lamp-off) .flame-ambient-overlay {
+      opacity: 1;
+      animation: ambientFlicker 2s infinite alternate;
+    }
+    @keyframes ambientFlicker {
+      0% { opacity: 0.7; }
+      100% { opacity: 1; }
+    }
+
+    .darkness-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: radial-gradient(circle at 10% 250px, transparent 0%, rgba(0,0,0,0.95) 450px, #000 100%);
+      z-index: 998;
+      pointer-events: none;
+      transition: opacity 1.5s ease-in-out;
+      opacity: 0;
+    }
+    body.lamp-off .darkness-overlay {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    body.lamp-off .main-content,
+    body.lamp-off .navbar {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 1.5s ease-in-out;
+    }
+    body:not(.lamp-off) .main-content,
+    body:not(.lamp-off) .navbar {
+      opacity: 1;
+      pointer-events: auto;
+      transition: opacity 1.5s ease-in-out 0.3s;
+    }
+
+    .lamp-container {
+      position: fixed;
+      top: -10px;
+      left: 12%;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transform: scale(2.2);
+      transform-origin: top center;
+    }
+    .lamp-wire { width: 4px; height: 80px; background: #111; border-left: 1px solid #333; }
+    .lamp-head { width: 60px; height: 35px; background: #222; border-radius: 30px 30px 0 0; position: relative; box-shadow: inset 0 -2px 0 #555; }
+    
+    .lamp-flame {
+      width: 14px; height: 24px;
+      background: #fff3d6;
+      border-radius: 50% 50% 30% 30%;
+      position: absolute; bottom: -12px; left: 23px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      box-shadow: 0 0 15px 5px rgba(255,165,0,0.8), 0 0 30px 10px rgba(255,69,0,0.6);
+      z-index: 2;
+    }
+    body:not(.lamp-off) .lamp-flame {
+      opacity: 1;
+      animation: flameFlicker 0.15s infinite alternate;
+    }
+    @keyframes flameFlicker {
+      0% { transform: scale(1) skewX(-2deg); box-shadow: 0 0 15px 5px rgba(255,165,0,0.8), 0 0 35px 15px rgba(255,69,0,0.6); }
+      100% { transform: scale(1.1) skewX(2deg); box-shadow: 0 0 20px 8px rgba(255,165,0,0.9), 0 0 40px 20px rgba(255,69,0,0.7); }
+    }
+    
+    .lamp-string {
+      width: 2px; height: 80px; background: #888;
+      position: absolute; top: 115px; left: 50%; transform: translateX(-50%);
+      cursor: pointer; transition: height 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 1;
+    }
+    .lamp-string::after {
+      content: ''; width: 14px; height: 14px; background: var(--primary); border-radius: 50%;
+      position: absolute; bottom: 0; left: -6px; box-shadow: inset -2px -2px 5px rgba(0,0,0,0.5);
+    }
+    .lamp-string.pulled { height: 120px; }
+    
+    @keyframes floatPopup {
+      0% { transform: translateY(0px) scale(1); }
+      50% { transform: translateY(-8px) scale(1.02); }
+      100% { transform: translateY(0px) scale(1); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Interactive Lamp (starts ON for logged in users) -->
+  <div class="lamp-container">
+    <div class="lamp-wire"></div>
+    <div class="lamp-head">
+      <div class="lamp-flame"></div>
+    </div>
+    <div class="lamp-string" onclick="toggleLamp()"></div>
+  </div>
+  <div class="darkness-overlay"></div>
+  <div class="flame-ambient-overlay"></div>
+  <!-- Full Page Background Video -->
+  <video autoplay muted loop playsinline class="bg-video">
+    <source src="assets/videos/background.mp4" type="video/mp4">
+  </video>
+  <div class="video-overlay"></div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
+
+  <!-- Checkout Modal -->
+  <div id="checkoutModal" class="modal-overlay hidden">
+    <div class="modal glass-panel scale-in">
+      <h2 class="gradient-text">Complete Your Order</h2>
+      <form id="checkoutForm" onsubmit="submitCheckout(event)">
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" id="checkoutName" placeholder="John Doe" required />
+        </div>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="checkoutEmail" placeholder="you@example.com" required />
+        </div>
+        <div class="form-group">
+          <label>Order Summary</label>
+          <div id="modalCartSummary" class="modal-summary"></div>
+          <div class="modal-total">Total: $<span id="modalTotal">0.00</span></div>
+        </div>
+        <div style="display:flex;gap:1rem;margin-top:1rem;">
+          <button type="button" class="btn-ghost w-100" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn-primary w-100">Place Order 🚀</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <header class="navbar glass-nav" id="navbar">
+    <nav style="display:flex; align-items:center; justify-content:space-between; width:100%; position:relative;">
+      
+      <!-- Left: Logo & Links -->
+      <div style="display:flex; align-items:center; gap:2rem;">
+        <!-- Logo -->
+        <a href="index.html" class="logo nav-brand" style="text-decoration:none; display:flex; align-items:center; gap: 0.5rem;">
+          <i class="fa-solid fa-star" style="color: var(--primary); font-size: 1.5rem;"></i>
+          <h1 style="margin:0; font-family: 'Playfair Display', serif; color: var(--primary); font-weight: 900; letter-spacing: 0.5px; font-size: 2rem;">Starlight Bookstore</h1>
+        </a>
+        <ul class="nav-links" style="margin:0; padding:0; align-items:center;">
+          <li><a href="index.html" class="nav-link active">Home</a></li>
+          <li><a href="catalog.html" class="nav-link">Catalog</a></li>
+          <li class="auth-only" style="display:none;"><a href="profile.html" class="nav-link">Account</a></li>
+        </ul>
+      </div>
+
+      <!-- Center: Search, Notif, Cart -->
+      <div class="nav-center" style="display:flex; align-items:center; gap:1.2rem; position:absolute; left:50%; transform:translateX(-50%);">
+        <!-- Global Search Bar (Customer Only) -->
+        <div style="position: relative; display: flex; align-items: center;" class="auth-only no-admin">
+          <input type="text" id="globalSearch" placeholder="Search books..." onkeypress="if(event.key==='Enter') { window.location.href='catalog.html?q=' + encodeURIComponent(this.value); }" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 25px; padding: 0.6rem 1.2rem 0.6rem 2.8rem; color: var(--text); outline: none; width: 280px; font-family: 'Inter', sans-serif; font-size: 0.95rem; transition: all 0.3s;">
+          <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 1.1rem; pointer-events: none;"></i>
+        </div>
+        
+        <div class="auth-only dropdown" style="display:none; position:relative;">
+          <button style="background:transparent; border:none; color:var(--text); font-size:1.3rem; cursor:pointer; position:relative;" onclick="toggleNotificationDropdown(event)">
+            <i class="fa-regular fa-bell"></i>
+            <span id="notificationBadge" class="badge" style="display:none; background: var(--primary); color: black; border-radius: 50%; padding: 2px 5px; font-size: 10px; position:absolute; top:-5px; right:-5px; font-weight:bold;">0</span>
+          </button>
+          <div class="dropdown-content notification-dropdown" id="notificationDropdownContent" style="width: 320px; padding: 1rem; right: 0; left: auto; display:none; position:absolute; background: rgba(20,20,20,0.95); border: 1px solid var(--gold); border-radius: 8px; z-index: 999; margin-top: 0.5rem;">
+          </div>
+        </div>
+        
+        <div class="cart-icon no-admin auth-only" onclick="window.location.href='cart.html'" style="display:none; cursor:pointer; position:relative;">
+          <i class="fa-solid fa-cart-shopping" style="color:var(--text); font-size:1.3rem;"></i>
+          <span class="cart-badge" id="navCartBadge" style="background:var(--primary); color:#000; border-radius:50%; padding:2px 5px; font-size:10px; position:absolute; top:-5px; right:-10px; font-weight:bold;">0</span>
+        </div>
+      </div>
+
+      <!-- Right: Profile, Login -->
+      <div class="nav-actions" style="display:flex; align-items:center; gap:0.5rem;">
+        <!-- Theme Toggle -->
+        <button id="themeToggle" onclick="toggleTheme()" style="background:transparent; border:none; color:var(--text); font-size:1.3rem; cursor:pointer; margin-right: 10px; transition: transform 0.3s;" onmouseover="this.style.transform='rotate(20deg)'" onmouseout="this.style.transform='rotate(0deg)'">
+          <i class="fa-solid fa-sun" id="themeIcon"></i>
+        </button>
+        <!-- User Profile Dropdown -->
+        <div class="auth-only dropdown" style="display:none; position:relative; align-items:center; gap:0.5rem;">
+          <span style="font-family:'Inter', sans-serif; font-size:1.05rem; color:var(--text); font-weight:600;">Hello, <span id="topNavUserName">User</span></span>
+          <div onclick="toggleAccountDropdown(event)" style="cursor:pointer; display:flex; align-items:center; justify-content:center; margin-left:0.3rem;">
+            <img id="topNavProfileImg" src="" style="display:none; width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary);">
+            <i class="fa-solid fa-circle-user" id="topNavProfileIcon" style="font-size: 2.2rem; color: var(--text);"></i>
+          </div>
+          <div class="dropdown-content account-dropdown" id="accountDropdownContent" style="width: 200px; padding: 0.5rem; position:absolute; top: 120%; right: 0; left: auto; background: rgba(20,20,20,0.95); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; z-index: 999; display:none; flex-direction:column; gap:0.2rem; box-shadow: var(--shadow);">
+            <a href="profile.html" class="menu-item"><i class="fa-regular fa-user" style="width:20px; text-align:center; margin-right:6px;"></i> Profile</a>
+            <a href="orders.html" class="menu-item"><i class="fa-solid fa-box-open" style="width:20px; text-align:center; margin-right:6px;"></i> My Orders</a>
+            <a href="wishlist.html" class="menu-item"><i class="fa-regular fa-heart" style="width:20px; text-align:center; margin-right:6px;"></i> Wishlist</a>
+            <a href="support.html" class="menu-item"><i class="fa-solid fa-ticket" style="width:20px; text-align:center; margin-right:6px;"></i> Support Tickets</a>
+            <a href="change-password.html" class="menu-item"><i class="fa-solid fa-lock" style="width:20px; text-align:center; margin-right:6px;"></i> Change Password</a>
+            <hr style="border-color: rgba(255,255,255,0.1); margin: 0.5rem 0;">
+            <a href="#" onclick="logoutMPA(event)" class="menu-item logout"><i class="fa-solid fa-arrow-right-from-bracket" style="width:20px; text-align:center; margin-right:6px;"></i> Logout</a>
+          </div>
+        </div>
+        
+        <!-- Guest View -->
+        <button id="btnLogin" class="btn-primary guest-only" onclick="window.location.href='login.html'">Log In</button>
+      </div>
+
+    </nav>
+  </header>
+
+  <main class="main-content">
+  
+    <!-- Combined Profile/Time Widget -->
+    <div id="wwCombinedWidget" class="fade-in-up" style="display:none; position:absolute; top: 90px; left: 35%; transform: none; z-index: 1000; background: rgba(40,15,0,0.4); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,160,60,0.35); border-radius: 22px; padding: 0.9rem 1.8rem; flex-direction: row; align-items: center; gap: 1.8rem; box-shadow: 0 8px 30px rgba(255,120,0,0.25), inset 0 0 20px rgba(255,150,0,0.15); margin: 0;">
+      <!-- Left: Profile and Greeting -->
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <img id="wwCombinedProfileImg" src="assets/images/books/book1.jpg" alt="Profile" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 1px solid var(--primary); box-shadow: 0 0 10px rgba(212,175,55,0.3);">
+        <div style="display: flex; flex-direction: column; align-items: flex-start;">
+          <span style="font-family: 'Inter', sans-serif; font-size: 1.1rem; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">Hello, <span id="wwCombinedName">User</span></span>
+          <span id="wwCombinedGreeting" style="font-family: 'Playfair Display', serif; font-size: 1.35rem; font-style: italic; font-weight: 700; color: #ffd700; letter-spacing: 0.5px; text-shadow: 0 0 10px rgba(255,215,0,0.3); position: relative; left: -12px;">Good Evening...!!</span>
+        </div>
+      </div>
+      
+      <!-- Divider -->
+      <div style="width: 1px; height: 45px; background: rgba(255,180,100,0.3); box-shadow: 0 0 5px rgba(255,180,100,0.5);"></div>
+      
+      <!-- Right: Date and Time -->
+      <div style="display: flex; align-items: center; gap: 1.5rem;">
+        <div style="display: flex; flex-direction: column; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">
+          <span id="wwCombinedDate" style="font-family: 'Inter', sans-serif; font-size: 0.9rem; color: #ffebcd;">Tuesday, September 17</span>
+          <span id="wwCombinedTime" style="font-family: 'Inter', sans-serif; font-size: 1.7rem; color: #fff; font-weight: 600; letter-spacing: 0.5px;">07:42 PM</span>
+        </div>
+        <i id="wwCombinedIcon" class="fa-solid fa-moon" style="font-size: 2rem; color: #ffd700; filter: drop-shadow(0 0 8px rgba(255,215,0,0.4));"></i>
+      </div>
+    </div>
+
+    <!-- ===== HOME ===== -->
+    <section id="home" class="section active-section">
+      <div class="hero">
+        <!-- Quick Links Widget (Left Side) -->
+        <div class="fade-in-up" style="position: absolute; top: 250px; left: 2%; z-index: 20; display: flex; flex-direction: column; gap: 1.5rem; background: rgba(15,10,5,0.7); backdrop-filter: blur(10px); border: 1px solid rgba(212,175,55,0.3); border-radius: 25px; padding: 1.8rem 1.2rem; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+          <a href="wishlist.html" style="text-decoration: none; color: #ffd700; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+            <i class="fa-regular fa-heart" style="font-size: 1.8rem; margin-bottom: 0.5rem; display: block;"></i>
+            <span style="font-size: 0.8rem; font-family: 'Inter', sans-serif; color: #fff;">Wishlist</span>
+          </a>
+          <a href="orders.html" style="text-decoration: none; color: #ffd700; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+            <i class="fa-solid fa-cube" style="font-size: 1.8rem; margin-bottom: 0.5rem; display: block;"></i>
+            <span style="font-size: 0.8rem; font-family: 'Inter', sans-serif; color: #fff;">Orders</span>
+          </a>
+          <a href="support.html" style="text-decoration: none; color: #ffd700; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+            <i class="fa-solid fa-headset" style="font-size: 1.8rem; margin-bottom: 0.5rem; display: block;"></i>
+            <span style="font-size: 0.8rem; font-family: 'Inter', sans-serif; color: #fff;">Support</span>
+          </a>
+        </div>
+
+        <!-- Quote Widget (Top Right) -->
+        <div id="wwQuoteWidget" class="fade-in-up" style="display:none; position:absolute; top: 75px; right: 5%; z-index: 10; max-width: 450px; text-align: right; border-right: 2px solid var(--primary); padding-right: 1.5rem;">
+          <div style="font-family: 'Playfair Display', serif; font-style: italic; color: var(--text); font-size: 1.6rem; line-height: 1.5; font-weight: 400;">"A room without books is like a body without a soul."</div>
+          <div style="font-family: 'Inter', sans-serif; color: var(--primary); font-size: 1rem; margin-top: 1rem;">— Marcus Tullius Cicero</div>
+        </div>
+
+        <!-- Explore More CTA (Right Side) -->
+        <div class="fade-in-up" style="position:absolute; top: 230px; right: 1%; z-index: 10; width: 310px; opacity: 0.82; transition: opacity 0.3s ease;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.82'">
+          <div style="width: 100%; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid rgba(212,175,55,0.4); position: relative; background: url('assets/images/cta_background.jpg') center/cover; padding: 2rem 1.5rem; text-align: left; display: flex; flex-direction: column; justify-content: center;">
+            <div style="position: absolute; top: 0; left: 0; bottom: 0; right: 0; background: linear-gradient(to bottom right, rgba(15,10,5,0.95), rgba(15,10,5,0.5)); z-index: 1;"></div>
+            
+            <div style="position: relative; z-index: 2;">
+              <div style="color: #ffd700; font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase; font-weight: 700; margin-bottom: 0.6rem;">Personalized Features</div>
+              <h2 style="font-family: 'Playfair Display', serif; font-size: 1.6rem; color: #fff; line-height: 1.2; margin-bottom: 0.8rem;">Your<br>Reading<br>Experience</h2>
+              <p style="color: #e0e0e0; font-size: 0.9rem; line-height: 1.4; margin-bottom: 1.2rem; opacity: 0.9;">Manage preferences, track authors, and create collections.</p>
+              <button onclick="window.location.href='personalized-features.html'" style="background: linear-gradient(135deg, #e5b340, #ffcf6b); color: #1a1a1a; border: none; padding: 0.6rem 1.2rem; border-radius: 25px; font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 5px 15px rgba(212,175,55,0.4)';" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none';">Explore Now &rarr;</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-text fade-in-up" style="margin-top: 5rem;">
+          <div class="hero-tag" style="display: inline-block; margin-bottom: 1rem; color: var(--primary); font-size: 0.85rem; letter-spacing: 2px; text-transform: uppercase;">A WORLD OF STORIES AWAITS</div>
+          <h1 class="hero-title">Discover Your<br/><span class="gradient-text">Next Great Read</span></h1>
+          <p class="hero-subtitle">Thousands of books across every genre, curated for curious minds like yours.</p>
+          <div class="hero-actions">
+            <button class="btn-primary btn-lg pulse-btn" onclick="window.location.href='catalog.html'">Browse Collection</button>
+            <button class="btn-ghost btn-lg" onclick="window.location.href='support.html'">Get Help</button>
+          </div>
+          <div class="hero-stats" id="heroStats" style="display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 3rem;">
+            <div class="stat-card" style="background: rgba(15,10,5,0.7); backdrop-filter: blur(10px); border: 1px solid rgba(212,175,55,0.2); border-radius: 12px; padding: 1.2rem; flex: 1; min-width: 140px;">
+              <div class="stat-icon" style="margin-bottom: 0.5rem;"><i class="fa-solid fa-book-open" style="color: var(--primary); font-size: 1.5rem;"></i></div>
+              <div class="stat-num" style="color: var(--primary); font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700;">3,000+</div>
+              <div class="stat-label" style="color: var(--text-muted); font-size: 0.85rem;">Books Available</div>
+            </div>
+            <div class="stat-card" style="background: rgba(15,10,5,0.7); backdrop-filter: blur(10px); border: 1px solid rgba(212,175,55,0.2); border-radius: 12px; padding: 1.2rem; flex: 1; min-width: 140px;">
+              <div class="stat-icon" style="margin-bottom: 0.5rem;"><i class="fa-regular fa-calendar-check" style="color: var(--primary); font-size: 1.5rem;"></i></div>
+              <div class="stat-num" style="color: var(--primary); font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700;">7,500+</div>
+              <div class="stat-label" style="color: var(--text-muted); font-size: 0.85rem;">Happy Readers</div>
+            </div>
+            <div class="stat-card" style="background: rgba(15,10,5,0.7); backdrop-filter: blur(10px); border: 1px solid rgba(212,175,55,0.2); border-radius: 12px; padding: 1.2rem; flex: 1; min-width: 140px;">
+              <div class="stat-icon" style="margin-bottom: 0.5rem;"><i class="fa-solid fa-masks-theater" style="color: var(--primary); font-size: 1.5rem;"></i></div>
+              <div class="stat-num" style="color: var(--primary); font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700;">50+</div>
+              <div class="stat-label" style="color: var(--text-muted); font-size: 0.85rem;">Genres</div>
+            </div>
+            <div class="stat-card" style="background: rgba(15,10,5,0.7); backdrop-filter: blur(10px); border: 1px solid rgba(212,175,55,0.2); border-radius: 12px; padding: 1.2rem; flex: 1; min-width: 140px;">
+              <div class="stat-icon" style="margin-bottom: 0.5rem;"><i class="fa-regular fa-star" style="color: var(--primary); font-size: 1.5rem;"></i></div>
+              <div class="stat-num" style="color: var(--primary); font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700;">4.8</div>
+              <div class="stat-label" style="color: var(--text-muted); font-size: 0.85rem;">Average Rating</div>
+            </div>
+          </div>
+          </div>
+        <div class="hero-visual">
+          <div class="scene">
+            <!-- Glowing Constellation Line -->
+            <svg class="constellation-svg" width="400" height="400" viewBox="0 0 400 400" style="position:absolute; top:0; left:0; z-index:-1; pointer-events:none; filter:drop-shadow(0 0 8px var(--primary));">
+              <path d="M200,200 Q240,120 200,70 M200,200 Q280,180 350,120 M200,200 Q280,280 330,320 M200,200 Q120,280 80,310 M200,200 Q120,180 60,140" fill="none" stroke="var(--primary)" stroke-width="2.5" opacity="0.8">
+                <animate attributeName="stroke-dashoffset" from="100" to="0" dur="4s" repeatCount="indefinite" />
+              </path>
+            </svg>
+            
+            <!-- Main Featured Book -->
+            <div class="book-container main-book">
+              <div class="book-3d">
+                <div class="book-face b-shadow"></div>
+                <div class="book-face b-front"><img src="assets/images/books/book1.jpg" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;" alt="Starlight"></div>
+                <div class="book-face b-back"></div>
+                <div class="book-face b-left"></div>
+                <div class="book-face b-right"></div>
+                <div class="book-face b-top"></div>
+                <div class="book-face b-bottom"></div>
+              </div>
+            </div>
+            
+            <!-- Floating books -->
+            <div class="book-container orbit-1">
+              <div class="book-3d book-small">
+                <div class="book-face b-shadow"></div>
+                <div class="book-face b-front"><img src="assets/images/books/book2.jpg" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;" alt="Sci-Fi"></div>
+                <div class="book-face b-back"></div><div class="book-face b-left"></div><div class="book-face b-right"></div><div class="book-face b-top"></div><div class="book-face b-bottom"></div>
+              </div>
+            </div>
+            
+            <div class="book-container orbit-2">
+              <div class="book-3d book-small">
+                <div class="book-face b-shadow"></div>
+                <div class="book-face b-front"><img src="assets/images/books/book3.jpg" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;" alt="Fantasy"></div>
+                <div class="book-face b-back"></div><div class="book-face b-left"></div><div class="book-face b-right"></div><div class="book-face b-top"></div><div class="book-face b-bottom"></div>
+              </div>
+            </div>
+            
+            <div class="book-container orbit-3">
+              <div class="book-3d book-small">
+                <div class="book-face b-shadow"></div>
+                <div class="book-face b-front"><img src="assets/images/books/book4.jpg" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;" alt="History"></div>
+                <div class="book-face b-back"></div><div class="book-face b-left"></div><div class="book-face b-right"></div><div class="book-face b-top"></div><div class="book-face b-bottom"></div>
+              </div>
+            </div>
+            
+            <div class="book-container orbit-4">
+              <div class="book-3d book-small">
+                <div class="book-face b-shadow"></div>
+                <div class="book-face b-front"><img src="assets/images/books/book5.jpg" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;" alt="Technology"></div>
+                <div class="book-face b-back"></div><div class="book-face b-left"></div><div class="book-face b-right"></div><div class="book-face b-top"></div><div class="book-face b-bottom"></div>
+              </div>
+            </div>
+            
+            <div class="book-container orbit-5">
+              <div class="book-3d book-small">
+                <div class="book-face b-shadow"></div>
+                <div class="book-face b-front"><img src="assets/images/books/book6.jpg" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;" alt="Business"></div>
+                <div class="book-face b-back"></div><div class="book-face b-left"></div><div class="book-face b-right"></div><div class="book-face b-top"></div><div class="book-face b-bottom"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div> <!-- end .hero -->
+
+      <!-- Features Banner (Full Width) -->
+      <div class="features-banner fade-in-up" style="display: flex; justify-content: space-between; align-items: center; background: rgba(15,10,5,0.7); backdrop-filter: blur(10px); border: 1px solid rgba(212,175,55,0.2); border-radius: 12px; padding: 1.2rem 2.5rem; margin-top: 2rem; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <i class="fa-solid fa-truck-fast" style="font-size: 2rem; color: var(--primary);"></i>
+          <div style="display: flex; flex-direction: column;">
+            <span style="font-family: 'Outfit', sans-serif; font-weight: 700; color: #fff; font-size: 1rem;">Free Shipping</span>
+            <span style="font-family: 'Inter', sans-serif; color: rgba(255,255,255,0.5); font-size: 0.8rem;">On orders over Rs 999</span>
+          </div>
+        </div>
+        <div style="width: 1px; height: 40px; background: rgba(255,255,255,0.1);"></div>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <i class="fa-solid fa-shield-halved" style="font-size: 2rem; color: var(--primary);"></i>
+          <div style="display: flex; flex-direction: column;">
+            <span style="font-family: 'Outfit', sans-serif; font-weight: 700; color: #fff; font-size: 1rem;">Secure Payment</span>
+            <span style="font-family: 'Inter', sans-serif; color: rgba(255,255,255,0.5); font-size: 0.8rem;">100% secure & trusted</span>
+          </div>
+        </div>
+        <div style="width: 1px; height: 40px; background: rgba(255,255,255,0.1);"></div>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <i class="fa-solid fa-box-open" style="font-size: 2rem; color: var(--primary);"></i>
+          <div style="display: flex; flex-direction: column;">
+            <span style="font-family: 'Outfit', sans-serif; font-weight: 700; color: #fff; font-size: 1rem;">Easy Returns</span>
+            <span style="font-family: 'Inter', sans-serif; color: rgba(255,255,255,0.5); font-size: 0.8rem;">Hassle-free returns within 7 days</span>
+          </div>
+        </div>
+        <div style="width: 1px; height: 40px; background: rgba(255,255,255,0.1);"></div>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <i class="fa-solid fa-headset" style="font-size: 2rem; color: var(--primary);"></i>
+          <div style="display: flex; flex-direction: column;">
+            <span style="font-family: 'Outfit', sans-serif; font-weight: 700; color: #fff; font-size: 1rem;">24/7 Support</span>
+            <span style="font-family: 'Inter', sans-serif; color: rgba(255,255,255,0.5); font-size: 0.8rem;">We're always here to help</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dashboard Layout for Popular & New Arrivals -->
+      <div class="store-showcase-grid fade-in-up" style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-top: 1.5rem;">
+        
+        <!-- Popular This Week -->
+        <div style="background: rgba(15,10,5,0.5); border: 1px solid rgba(212,175,55,0.2); border-radius: 12px; padding: 1.5rem; display: flex; flex-direction: column;">
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.8rem; margin-bottom: 1rem;">
+            <h3 style="font-family: 'Playfair Display', serif; font-size: 1.3rem; color: #fff; margin: 0; display: flex; align-items: center; gap: 0.5rem;"><i class="fa-solid fa-fire" style="color: var(--primary);"></i> Popular This Week <span style="display:inline-block; width:40px; height:2px; background: linear-gradient(90deg, var(--primary), transparent);"></span></h3>
+            <a href="#" style="color: var(--primary); font-size: 0.9rem; text-decoration: none; font-weight: 600;">View All &rarr;</a>
+          </div>
+          <!-- Horizontal Scroll Container -->
+          <div id="popularBooksContainer" style="display: flex; gap: 1rem; overflow-x: auto; padding-bottom: 1rem; scrollbar-width: thin; scrollbar-color: var(--primary) transparent;">
+            <!-- Rendered by JS -->
+            <div style="color: rgba(255,255,255,0.5); font-size: 0.9rem; padding: 2rem; text-align: center; width: 100%;">Loading popular books...</div>
+          </div>
+        </div>
+
+        <!-- New Arrivals -->
+        <div style="background: rgba(15,10,5,0.5); border: 1px solid rgba(212,175,55,0.2); border-radius: 12px; padding: 1.5rem; display: flex; flex-direction: column;">
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.8rem; margin-bottom: 1rem;">
+            <h3 style="font-family: 'Playfair Display', serif; font-size: 1.3rem; color: #fff; margin: 0; display: flex; align-items: center; gap: 0.5rem;"><i class="fa-solid fa-leaf" style="color: var(--primary);"></i> New Arrivals</h3>
+            <a href="#" style="color: var(--primary); font-size: 0.9rem; text-decoration: none; font-weight: 600;">View All &rarr;</a>
+          </div>
+          
+          <div id="newArrivalsContainer" style="flex: 1; display: flex; flex-direction: column; gap: 1rem;">
+            <!-- Promo Banner Box inside New Arrivals -->
+            <div style="position: relative; border-radius: 10px; overflow: hidden; background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.8)), url('assets/images/books/book1.jpg') center/cover; padding: 2rem 1.5rem; text-align: right; border: 1px solid rgba(212,175,55,0.3); flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: flex-end;">
+              <h4 style="font-family: 'Playfair Display', serif; font-size: 1.4rem; color: #fff; margin: 0 0 0.5rem 0;">Fresh Stories<br>New Adventures</h4>
+              <button onclick="window.location.href='catalog.html'" style="background: transparent; border: 1px solid var(--primary); color: var(--primary); padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.8rem; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.background='var(--primary)'; this.style.color='#000';" onmouseout="this.style.background='transparent'; this.style.color='var(--primary)';">Shop Now &rarr;</button>
+            </div>
+            <!-- Pagination Dots -->
+            <div style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 0.5rem;">
+              <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--primary);"></div>
+              <div style="width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.2);"></div>
+              <div style="width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.2);"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Featured Genre Chips -->
+      <div class="genre-section fade-in-up">
+        <h2 class="section-subtitle">Browse by Genre</h2>
+        <div class="genre-chips" id="genreChips">
+          <button class="chip active" onclick="filterByGenre(this, '')">All</button>
+          <button class="chip" onclick="filterByGenre(this, 'Science')"><i class="fa-solid fa-flask" style="color: var(--text-muted);"></i> Science</button>
+          <button class="chip" onclick="filterByGenre(this, 'Fiction')"><i class="fa-solid fa-rocket" style="color: var(--text-muted);"></i> Sci-Fi</button>
+          <button class="chip" onclick="filterByGenre(this, 'Classic')"><i class="fa-solid fa-building-columns" style="color: var(--text-muted);"></i> Classic</button>
+          <button class="chip" onclick="filterByGenre(this, 'Mystery')"><i class="fa-solid fa-magnifying-glass" style="color: var(--text-muted);"></i> Mystery</button>
+          <button class="chip" onclick="filterByGenre(this, 'Fantasy')"><i class="fa-solid fa-dragon" style="color: var(--text-muted);"></i> Fantasy</button>
+          <button class="chip" onclick="filterByGenre(this, 'History')"><i class="fa-solid fa-scroll" style="color: var(--text-muted);"></i> History</button>
+        </div>
+      </div>
+
+      <!-- Featured Books Row -->
+      <div class="fade-in-up">
+        <h2 class="section-subtitle">Featured Books</h2>
+        <div class="book-grid" id="featuredGrid"></div>
+      </div>
+
+
+    </section>
+
+  </main>
+
+  <footer class="footer glass-nav">
+    <p>© 2026 <strong>Starlight Bookstore</strong> — Built with ❤️ on Spring Boot & Java 21</p>
+  </footer>
+
+  <div class="chatbot-container">
+    <!-- Chat Window -->
+    <div id="chat-window" class="chat-window">
+      <div class="chat-header">
+        <span>✨ Starlight Assistant</span>
+        <button onclick="toggleChat()" style="background:none; border:none; color:#000; font-size:1.5rem; cursor:pointer; line-height: 1;">&times;</button>
+      </div>
+      <div id="chat-messages" class="chat-messages">
+        <div class="chat-msg bot-msg">
+          Hello! I'm your Starlight Assistant. How can I help you today?
+        </div>
+      </div>
+      <div class="chat-input-area">
+        <input type="text" id="chat-input" class="chat-input" placeholder="Ask something..." onkeypress="handleChatEnter(event)">
+        <button onclick="sendChatMessage()" class="chat-send-btn">
+          ➤
+        </button>
+      </div>
+    </div>
+
+    <!-- Chatbot Popup Bubble -->
+    <div id="chatbot-popup" style="position:absolute; bottom: 75px; right: 0; background: var(--primary); color: #000; padding: 10px 15px; border-radius: 15px 15px 0 15px; font-family: 'Outfit', sans-serif; font-weight: 700; box-shadow: 0 4px 15px rgba(0,0,0,0.4); font-size: 0.95rem; white-space: nowrap; animation: floatPopup 2.5s infinite ease-in-out; cursor: pointer; z-index: 100;" onclick="toggleChat(); document.getElementById('chatbot-popup').style.display='none';">
+      Need a help? I'm here! 👋
+    </div>
+
+    <!-- Bot Icon -->
+    <div id="bot-icon" class="bot-icon" onclick="toggleChat(); document.getElementById('chatbot-popup').style.display='none';">
+      🤖<span class="waving-hand">👋</span>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="app.js?v=6.0"></script>
+  <script>
+    function toggleLamp() {
+      const string = document.querySelector('.lamp-string');
+      string.classList.add('pulled');
+      setTimeout(() => {
+        string.classList.remove('pulled');
+        document.body.classList.toggle('lamp-off');
+      }, 200);
+    }
+    function updateClock() {
+      const now = new Date();
+      
+      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const options = { weekday: 'long', month: 'long', day: 'numeric' };
+      const dateStr = now.toLocaleDateString(undefined, options);
+      
+      const hour = now.getHours();
+      let greeting = 'Good Evening...!!';
+      let icon = 'fa-moon';
+      
+      if (hour >= 5 && hour < 12) {
+        greeting = 'Good Morning...!!';
+        icon = 'fa-sun';
+      } else if (hour >= 12 && hour < 18) {
+        greeting = 'Good Afternoon...!!';
+        icon = 'fa-sun';
+      } else {
+        greeting = 'Good Evening...!!';
+        icon = 'fa-moon';
+      }
+
+      const timeEl = document.getElementById('wwCombinedTime');
+      const dateEl = document.getElementById('wwCombinedDate');
+      const greetingEl = document.getElementById('wwCombinedGreeting');
+      const iconEl = document.getElementById('wwCombinedIcon');
+
+      if (timeEl) timeEl.innerText = timeStr;
+      if (dateEl) dateEl.innerText = dateStr;
+      if (greetingEl) greetingEl.innerText = greeting;
+      
+      if (iconEl) {
+        iconEl.className = 'fa-solid ' + icon;
+      }
+    }
+    
+    // Initial clock update and set interval
+    updateClock();
+    setInterval(updateClock, 60000);
+  </script>
+<script src='theme.js'></script>
+</body>
+</html>
+
+
+

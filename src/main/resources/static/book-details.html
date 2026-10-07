@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Book Details - Starlight Bookstore</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Outfit:wght@400;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=6.0" />
+</head>
+<body>
+  <!-- Full Page Background Video -->
+  <video autoplay muted loop playsinline class="bg-video">
+    <source src="assets/videos/background.mp4" type="video/mp4">
+  </video>
+  <div class="video-overlay"></div>
+
+  <!-- Navigation -->
+  <header class="navbar glass-nav" id="navbar">
+    <nav class="navbar" style="width:100%; padding:0; border:none; display:flex; justify-content:space-between; align-items:center;">
+      <a href="index.html" class="logo" style="text-decoration:none;">✨ Starlight Bookstore</a>
+      
+      <ul class="nav-links" style="display:flex; gap:1.5rem; list-style:none;">
+        <li><a href="index.html" class="nav-link">Home</a></li>
+        <li><a href="catalog.html" class="nav-link">Browse Books</a></li>
+        <li><a href="wishlist.html" class="nav-link auth-only">Wishlist</a></li>
+        <li><a href="orders.html" class="nav-link auth-only">Orders</a></li>
+        <li><a href="support.html" class="nav-link auth-only">Support</a></li>
+        <li class="auth-only dropdown" style="display:none;">
+          <a href="#" class="nav-link" id="navAccountBtn" onclick="toggleAccountDropdown(event)">Account ▼</a>
+          <div class="dropdown-content account-dropdown" id="accountDropdownContent" style="width: 250px; padding: 0.5rem; right: 0; left: auto; background: rgba(20,20,20,0.95); border: 1px solid var(--gold); border-radius: 8px; z-index: 999; display:none; position:absolute;">
+            <a href="profile.html" style="display:block; padding:0.5rem; text-decoration:none; color:var(--text); transition:all 0.2s;">👤 Profile</a>
+            <a href="orders.html" style="display:block; padding:0.5rem; text-decoration:none; color:var(--text); transition:all 0.2s;">📦 My Orders</a>
+            <a href="wishlist.html" style="display:block; padding:0.5rem; text-decoration:none; color:var(--text); transition:all 0.2s;">❤️ Wishlist</a>
+            <a href="support.html" style="display:block; padding:0.5rem; text-decoration:none; color:var(--text); transition:all 0.2s;">🎫 Support Tickets</a>
+            <a href="change-password.html" style="display:block; padding:0.5rem; text-decoration:none; color:var(--text); transition:all 0.2s;">🔒 Change Password</a>
+            <hr style="border-color: rgba(255,255,255,0.1); margin: 0.5rem 0;">
+            <a href="#" onclick="logoutMPA(event)" style="display:block; padding:0.5rem; text-decoration:none; color:#ff6b6b; transition:all 0.2s;">🚪 Logout</a>
+          </div>
+        </li>
+        <li class="guest-only"><a href="login.html" class="nav-link">Sign In</a></li>
+        <li class="admin-only"><a href="admin-dashboard.html" class="nav-link text-green">Dashboard</a></li>
+        
+        <li class="auth-only dropdown" style="display:none;">
+          <a href="#" class="nav-link" onclick="toggleNotificationDropdown(event)">
+            🔔 <span id="notificationBadge" class="badge" style="display:none; background: #d4a373; color: black; border-radius: 50%; padding: 2px 6px; font-size: 12px; margin-left: 4px;">0</span>
+          </a>
+          <div class="dropdown-content notification-dropdown" id="notificationDropdownContent" style="width: 320px; padding: 1rem; right: 0; left: auto; display:none; position:absolute; background: rgba(20,20,20,0.95); border: 1px solid var(--gold); border-radius: 8px; z-index: 999;">
+            <!-- filled by JS -->
+          </div>
+        </li>
+        <li class="no-admin"><a href="cart.html" class="nav-link btn-primary btn-sm" style="color:#000;">🛒 Cart <span id="cartBadge" class="badge">0</span></a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="main-content" style="max-width: 1200px; margin-top: 2rem;">
+    <!-- Loading State -->
+    <div id="detailsLoading" class="text-center w-100" style="padding: 5rem 0;">
+      <p class="text-muted" style="font-size: 1.5rem;">Loading book details...</p>
+    </div>
+
+    <!-- Error State -->
+    <div id="detailsError" class="text-center w-100 hidden" style="padding: 5rem 0;">
+      <h2 class="gradient-text">Book Not Found</h2>
+      <p class="text-muted" style="margin-top: 1rem;">The book you are looking for does not exist or has been removed.</p>
+      <a href="catalog.html" class="btn-primary" style="display: inline-block; margin-top: 2rem;">Return to Catalog</a>
+    </div>
+
+    <!-- Details Content -->
+    <div id="detailsContent" class="hidden fade-in-up">
+      <!-- 1. Book Hero Section -->
+      <section style="display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: start; margin-bottom: 4rem;">
+        
+        <!-- Left: Large Book Cover -->
+        <div style="display: flex; justify-content: center; align-items: center; perspective: 1000px;">
+          <div id="detailCover" class="detail-book-cover">
+            <!-- Emoji inside -->
+            <span id="detailCoverEmoji">📚</span>
+          </div>
+        </div>
+
+        <!-- Right: Book Information Card -->
+        <div class="glass-panel" style="padding: 3rem;">
+          <h1 id="detailTitle" class="gradient-text" style="font-size: 3rem; margin-bottom: 0.5rem; line-height: 1.1;"></h1>
+          <p style="font-size: 1.2rem; color: var(--text-muted); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem;">
+            <span>by <strong id="detailAuthor" style="color: var(--text);"></strong></span>
+            <button id="followAuthorBtn" class="btn-ghost auth-only btn-sm" style="display:none; padding: 0.3rem 0.8rem; border: 1px solid var(--gold); border-radius: 12px; font-size: 0.9rem;" onclick="followAuthorFromDetails()">+ Follow</button>
+          </p>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid var(--glass-b);">
+            <div><span class="text-muted">ISBN:</span> <span id="detailIsbn"></span></div>
+            <div><span class="text-muted">Category:</span> <span id="detailCategory" class="genre-tag" style="margin: 0; display: inline-block;"></span></div>
+            <div><span class="text-muted">Publisher:</span> <span id="detailPublisher"></span></div>
+            <div><span class="text-muted">Rating:</span> <span id="detailRating" style="color: var(--primary);"></span></div>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem;">
+            <div>
+              <div id="detailPrice" style="font-size: 2.5rem; font-weight: 800; font-family: 'Outfit', sans-serif;"></div>
+              <div id="detailAvailability" style="font-size: 1.1rem; margin-top: 0.5rem;"></div>
+            </div>
+            
+            <!-- 2. Purchase Section -->
+            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 1rem;">
+              <div class="quantity-selector">
+                <button onclick="updateDetailQty(-1)">−</button>
+                <input type="number" id="detailQty" value="1" min="1" readonly>
+                <button onclick="updateDetailQty(1)">+</button>
+              </div>
+            </div>
+          </div>
+          
+          <div style="display: flex; gap: 1rem;">
+            <button id="detailAddToCartBtn" class="btn-primary w-100" style="padding: 1.2rem; font-size: 1.2rem;">Add to Cart 🛒</button>
+            <button id="detailAddWishlistBtn" class="btn-secondary w-100 auth-only" style="padding: 1.2rem; font-size: 1.2rem;">Add to Wishlist ❤️</button>
+          </div>
+          <div style="margin-top: 1rem; text-align: center;" class="auth-only">
+             <button id="detailAddCollectionBtn" class="btn-ghost w-100" style="padding: 1rem; border: 1px dashed rgba(255,255,255,0.2);" onclick="promptAddCollectionFromDetails()">+ Add to a Collection</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. Book Information Tabs -->
+      <section class="glass-panel" style="margin-bottom: 4rem;">
+        <div class="tabs-header">
+          <button class="tab-btn active" onclick="switchTab('overview')">Overview</button>
+          <button class="tab-btn" onclick="switchTab('details')">Details</button>
+          <button class="tab-btn" onclick="switchTab('reviews')">Reviews</button>
+        </div>
+        
+        <div class="tabs-content" style="padding: 2rem;">
+          <!-- Overview Tab -->
+          <div id="tab-overview" class="tab-pane active">
+            <h3 style="margin-bottom: 1rem;">Book Description</h3>
+            <p id="detailDescription" style="line-height: 1.8; color: var(--text-muted); font-size: 1.1rem;"></p>
+          </div>
+          
+          <!-- Details Tab -->
+          <div id="tab-details" class="tab-pane hidden">
+            <h3 style="margin-bottom: 1rem;">Product Details</h3>
+            <ul style="list-style: none; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; color: var(--text-muted);">
+              <li><strong>ISBN:</strong> <span id="tabIsbn"></span></li>
+              <li><strong>Author:</strong> <span id="tabAuthor"></span></li>
+              <li><strong>Publisher:</strong> <span id="tabPublisher"></span></li>
+              <li><strong>Language:</strong> <span id="tabLanguage"></span></li>
+              <li><strong>Publication Year:</strong> <span id="tabYear"></span></li>
+              <li><strong>Category:</strong> <span id="tabCategory"></span></li>
+            </ul>
+          </div>
+          
+          <!-- Reviews Tab -->
+          <div id="tab-reviews" class="tab-pane hidden">
+            <h3 style="margin-bottom: 1rem;">Customer Reviews</h3>
+            
+            <div style="display: flex; align-items: center; gap: 2rem; margin-bottom: 2rem; padding: 1.5rem; background: rgba(255,255,255,0.03); border-radius: 12px;">
+              <div style="text-align: center;">
+                <div id="reviewAvgScore" style="font-size: 3rem; font-weight: 800; color: var(--primary);"></div>
+                <div id="reviewAvgStars" style="color: var(--primary); font-size: 1.2rem;"></div>
+              </div>
+              <div style="flex-grow: 1;">
+                <p class="text-muted">Based on customer feedback, this book is highly recommended.</p>
+              </div>
+              <button class="btn-ghost auth-only">Write a Review</button>
+            </div>
+            
+            <!-- Placeholder Reviews -->
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+              <div style="border-bottom: 1px solid var(--glass-b); padding-bottom: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                  <strong>Sarah J.</strong>
+                  <span style="color: var(--primary);">★★★★★</span>
+                </div>
+                <p class="text-muted" style="margin: 0;">"An absolute masterpiece. Couldn't put it down once I started!"</p>
+              </div>
+              <div style="border-bottom: 1px solid var(--glass-b); padding-bottom: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                  <strong>Michael T.</strong>
+                  <span style="color: var(--primary);">★★★★☆</span>
+                </div>
+                <p class="text-muted" style="margin: 0;">"Very insightful and well written. The chapters flow logically."</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. Related Books Section -->
+      <section style="margin-bottom: 4rem;">
+        <h2 style="font-family: 'Outfit', sans-serif; margin-bottom: 2rem;">You May Also Like</h2>
+        <div class="book-grid" id="relatedBooksGrid">
+          <!-- Books injected via JS -->
+        </div>
+      </section>
+    </div>
+    
+    <!-- Select Collection Modal -->
+    <div id="selectCollectionModal" class="modal-overlay hidden" style="z-index: 2000;">
+      <div class="modal glass-panel scale-in" style="width: 100%; max-width: 350px; padding: 2rem; margin: 15% auto; text-align: center;">
+        <h2 style="font-family: 'Outfit', sans-serif; margin-bottom: 1rem; font-size: 1.5rem;">Select Collection</h2>
+        <ul id="collectionSelectionList" style="list-style: none; padding: 0; margin-bottom: 1.5rem; max-height: 200px; overflow-y: auto; color: white;">
+           <li class="text-muted">Loading collections...</li>
+        </ul>
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+          <button class="btn-ghost btn-sm w-100" onclick="closeSelectCollectionModal()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer glass-nav">
+    <p>© 2026 <strong>Starlight Bookstore</strong> — Built with ❤️ on Spring Boot & Java 21</p>
+  </footer>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="app.js?v=6.0"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      applyAuthState();
+      // Admin should not access book-details customer page
+      if (currentUser && currentUser.role === 'ADMIN') {
+        window.location.href = 'admin-books.html';
+        return;
+      }
+    });
+  </script>
+<script src='theme.js'></script>
+</body>
+</html>
+

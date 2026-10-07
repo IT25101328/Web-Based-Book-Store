@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Finance - Sales</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Outfit:wght@400;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=3.0" />
+</head>
+<body>
+  <header class="navbar glass-nav">
+    <nav class="navbar">
+      <div class="logo"><span class="logo-icon">💰</span><h1>Finance Portal</h1></div>
+      <ul class="nav-links">
+        <li><a href="finance-dashboard.html" class="nav-link">Dashboard</a></li>
+        <li><a href="finance-sales.html" class="nav-link active">Sales</a></li>
+
+      </ul>
+      <div class="nav-actions"><button class="btn-primary" onclick="logoutMPA()">Log Out</button></div>
+    </nav>
+  </header>
+  <main class="main-content">
+    <div class="page-header fade-in-up"><h1 class="gradient-text">Sales Ledger</h1></div>
+    <div class="glass-panel fade-in-up">
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Order #</th><th>Amount</th><th>Status</th></tr></thead>
+          <tbody id="finSalesBody"><tr><td colspan="3">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+  <script src="app.js?v=6.0"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      enforceRole('FINANCE');
+      try {
+        const orders = await apiFetch('/api/orders');
+        document.getElementById('finSalesBody').innerHTML = orders.map(o => `
+          <tr><td>#${o.id}</td><td style="color:var(--green)">+$${Number(o.totalAmount).toFixed(2)}</td><td>${o.status}</td></tr>
+        `).join('');
+      } catch {}
+    });
+  </script>
+<script src='theme.js'></script>
+</body>
+</html>
+

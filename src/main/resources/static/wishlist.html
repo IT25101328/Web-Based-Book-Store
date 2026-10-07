@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Wishlist - Starlight</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Outfit:wght@400;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=5.0" />
+</head>
+<body>
+  <div class="bg-orbs"><div class="orb orb1"></div><div class="orb orb2"></div></div>
+
+  <header class="navbar glass-nav" id="navbar">
+    <nav class="navbar">
+      <div class="logo">
+        <span class="logo-icon">✨</span>
+        <a href="index.html" style="color:white;text-decoration:none;"><h1>Starlight</h1></a>
+      </div>
+      <ul class="nav-links">
+        <li><a href="index.html" class="nav-link">Home</a></li>
+        <li><a href="catalog.html" class="nav-link">Browse Books</a></li>
+        <li class="auth-only" style="display:none;"><a href="wishlist.html" class="nav-link active">Wishlist</a></li>
+        <li class="auth-only dropdown" style="display:none;">
+          <a href="#" class="nav-link" id="navAccountBtn" onclick="toggleAccountDropdown(event)">Account ▼</a>
+          <div class="dropdown-content account-dropdown" id="accountDropdownContent" style="width: 250px; padding: 0.5rem; right: 0; left: auto; background: rgba(20,20,20,0.95); border: 1px solid var(--gold); border-radius: 8px; z-index: 999; display:none; position:absolute;">
+            <a href="profile.html" style="display:block; padding:0.5rem; text-decoration:none; color:var(--text); transition:all 0.2s;">👤 Profile</a>
+            <a href="orders.html" style="display:block; padding:0.5rem; text-decoration:none; color:var(--text); transition:all 0.2s;">📦 My Orders</a>
+            <a href="wishlist.html" style="display:block; padding:0.5rem; text-decoration:none; color:var(--text); transition:all 0.2s;">❤️ Wishlist</a>
+            <a href="support.html" style="display:block; padding:0.5rem; text-decoration:none; color:var(--text); transition:all 0.2s;">🎫 Support Tickets</a>
+            <a href="change-password.html" style="display:block; padding:0.5rem; text-decoration:none; color:var(--text); transition:all 0.2s;">🔒 Change Password</a>
+            <hr style="border-color: rgba(255,255,255,0.1); margin: 0.5rem 0;">
+            <a href="#" onclick="logoutMPA(event)" style="display:block; padding:0.5rem; text-decoration:none; color:#ff6b6b; transition:all 0.2s;">🚪 Logout</a>
+          </div>
+        </li>
+      </ul>
+      <div class="nav-actions">
+        
+        <div class="auth-only dropdown" style="display:none; position:relative;">
+          <button class="btn-primary" style="padding: 0.5rem 1rem;" onclick="toggleNotificationDropdown(event)">
+            🔔 <span id="notificationBadge" class="badge" style="display:none; background: #d4a373; color: black; border-radius: 50%; padding: 2px 6px; font-size: 12px; margin-left: 4px;">0</span>
+          </button>
+          <div class="dropdown-content notification-dropdown" id="notificationDropdownContent" style="width: 320px; padding: 1rem; right: 0; left: auto; display:none; position:absolute; background: rgba(20,20,20,0.95); border: 1px solid var(--gold); border-radius: 8px; z-index: 999; margin-top: 0.5rem;">
+            <!-- filled by JS -->
+          </div>
+        </div>
+
+        <div class="cart-icon no-admin auth-only" onclick="window.location.href='cart.html'" style="display:none;">
+          🛒 <span class="cart-badge" id="navCartBadge">0</span>
+        </div>
+        <button id="btnLogin" class="btn-primary guest-only" onclick="window.location.href='login.html'">Log In</button>
+        <button class="btn-primary auth-only" onclick="logoutMPA()" style="display:none;">Log Out</button>
+      </div>
+    </nav>
+  </header>
+
+  <main class="main-content" style="max-width: 1200px;">
+    <section class="section active-section" style="display:block;">
+      <div class="page-header fade-in-up" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 3rem;">
+        <div>
+          <h1 class="gradient-text" style="font-size:3rem; margin-bottom:0.5rem;" id="wishlistTitle">My Wishlist</h1>
+          <p class="text-muted" id="wishlistItemCount">0 Books</p>
+        </div>
+      </div>
+
+      <div class="wishlist-layout" style="display:flex; flex-direction:column; gap: 2rem;">
+        
+        <div class="empty-state glass-panel fade-in-up" id="wishlistEmpty" style="padding: 4rem 2rem;">
+          <div class="empty-icon" style="font-size: 4rem; margin-bottom: 1rem;">✨</div>
+          <p style="font-size: 1.2rem; margin-bottom: 2rem;">Your wishlist is empty</p>
+          <button class="btn-primary mt-2" onclick="window.location.href='catalog.html'">Discover Books</button>
+        </div>
+        
+        <div id="wishlistItemsContainer" class="book-grid fade-in-up" style="display:none; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 2rem;">
+          <!-- Rendered via JS -->
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Clone target for animation -->
+  <div id="cartIconTarget" style="position:fixed; top:20px; right:100px; width:40px; height:40px; pointer-events:none; z-index:9999; opacity:0;"></div>
+  
+  <div id="toast" class="toast"></div>
+  <script src="app.js?v=6.0"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      applyAuthState();
+      loadWishlistPage();
+    });
+  </script>
+<script src='theme.js'></script>
+</body>
+</html>
+

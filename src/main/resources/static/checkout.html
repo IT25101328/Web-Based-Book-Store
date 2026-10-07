@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Checkout - Starlight</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Outfit:wght@400;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=5.0" />
+  <style>
+    .visual-coupon {
+        width: 220px;
+        height: 130px;
+        background-image: url('assets/coupon_bg.jpg');
+        background-size: cover;
+        background-position: center;
+        border-radius: 12px;
+        border: 1px solid var(--gold);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.6), 0 0 15px rgba(212,175,55,0.4);
+        position: relative;
+        overflow: hidden;
+        color: white;
+        font-family: 'Outfit', sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        transition: transform 0.3s ease;
+    }
+    .visual-coupon:hover {
+        transform: scale(1.05);
+    }
+    .visual-coupon::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.5);
+    }
+    .coupon-content {
+        position: relative;
+        z-index: 2;
+        padding: 10px;
+    }
+    .coupon-content h4 {
+        margin: 0;
+        font-size: 0.85rem;
+        color: #ddd;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+    }
+    .coupon-amount {
+        font-size: 1.8rem;
+        font-weight: 900;
+        color: var(--gold);
+        margin: 5px 0;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.9);
+    }
+    .coupon-auto {
+        font-size: 0.75rem;
+        color: #88ff88;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+    }
+    @media (max-width: 1400px) {
+        #coupon-left-side, #coupon-right-side {
+            display: none !important;
+        }
+    }
+
+    /* Virtual Card Styles */
+    .virtual-card {
+        width: 100%;
+        height: 190px;
+        background: linear-gradient(135deg, #1c1c1c, #0a0a0a);
+        border-radius: 15px;
+        padding: 20px;
+        position: relative;
+        color: white;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(212,175,55,0.3);
+        margin-bottom: 1.5rem;
+        font-family: 'Courier New', Courier, monospace;
+        overflow: hidden;
+        transition: transform 0.3s;
+    }
+    .virtual-card::before {
+        content: '';
+        position: absolute;
+        top: -50%; left: -50%;
+        width: 200%; height: 200%;
+        background: radial-gradient(circle, rgba(212,175,55,0.15) 0%, transparent 60%);
+        pointer-events: none;
+    }
+    .card-chip {
+        width: 45px; height: 35px;
+        background: linear-gradient(135deg, #ffd700, #b8860b);
+        border-radius: 5px;
+        margin-bottom: 25px;
+        position: relative;
+        border: 1px solid rgba(0,0,0,0.3);
+    }
+    .card-chip::after {
+        content: '';
+        position: absolute;
+        top: 10px; left: 0; right: 0; bottom: 10px;
+        border-top: 1px solid rgba(0,0,0,0.2);
+        border-bottom: 1px solid rgba(0,0,0,0.2);
+    }
+    .card-number-display {
+        font-size: 1.5rem;
+        letter-spacing: 3px;
+        margin-bottom: 20px;
+        text-shadow: 0 2px 2px rgba(0,0,0,0.8);
+        min-height: 28px;
+    }
+    .card-bottom-info {
+        display: flex;
+        justify-content: space-between;
+        font-size: 1rem;
+        text-transform: uppercase;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+    }
+    .card-label {
+        font-size: 0.65rem;
+        color: #aaa;
+        margin-bottom: 2px;
+        font-family: 'Inter', sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-orbs"><div class="orb orb1"></div><div class="orb orb2"></div></div>
+
+  <header class="navbar glass-nav" id="navbar">
+    <nav class="navbar">
+      <div class="logo">
+        <span class="logo-icon">✨</span>
+        <a href="index.html" style="color:white;text-decoration:none;"><h1>Starlight</h1></a>
+      </div>
+      <ul class="nav-links">
+        
+        <li class="auth-only dropdown" style="display:none;">
+          <a href="#" class="nav-link" onclick="toggleNotificationDropdown(event)">
+            🔔 <span id="notificationBadge" class="badge" style="display:none; background: #d4a373; color: black; border-radius: 50%; padding: 2px 6px; font-size: 12px; margin-left: 4px;">0</span>
+          </a>
+          <div class="dropdown-content notification-dropdown" id="notificationDropdownContent" style="width: 320px; padding: 1rem; right: 0; left: auto; display:none; position:absolute; background: rgba(20,20,20,0.95); border: 1px solid var(--gold); border-radius: 8px; z-index: 999;">
+            <!-- filled by JS -->
+          </div>
+        </li>
+<li><a href="cart.html" class="nav-link">← Back to Cart</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="main-content" style="max-width: 800px; margin-top: 5rem; padding-bottom: 5rem;">
+    <section class="section active-section glass-panel fade-in-up" style="display:block; padding:3rem;" id="checkoutSection">
+      <h1 class="gradient-text" style="font-size:2.5rem; text-align:center; margin-bottom:2rem;">Checkout</h1>
+      
+      <div id="orderSummary" style="margin-bottom: 2rem; padding: 1rem; background: rgba(255,255,255,0.02); border: 1px solid var(--glass-b); border-radius: 8px;">
+          <h3 style="margin-bottom: 1rem; color: var(--gold);">Order Summary</h3>
+          <div id="checkoutItems"></div>
+          <div style="text-align: right; margin-top: 1rem; font-size: 1.2rem; font-weight: bold; color: var(--gold);">
+              Total: Rs <span id="checkoutTotal">0.00</span>
+          </div>
+      </div>
+
+      <form id="checkoutForm">
+          <div class="form-row" style="display:flex; gap:1rem; margin-bottom:1rem;">
+              <div class="form-group" style="flex:1;"><label>Full Name *</label><input type="text" id="custName" required /></div>
+              <div class="form-group" style="flex:1;"><label>Email *</label><input type="email" id="custEmail" required /></div>
+          </div>
+          <div class="form-row" style="display:flex; gap:1rem; margin-bottom:1rem;">
+              <div class="form-group" style="flex:2;"><label>Delivery Address *</label><input type="text" id="custAddress" required /></div>
+              <div class="form-group" style="flex:1;"><label>Phone No *</label><input type="text" id="custPhone" pattern="\d{1,10}" maxlength="10" title="Please enter up to 10 digits" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required /></div>
+          </div>
+          
+          <h3 style="margin: 2rem 0 1rem 0; color: var(--gold);">Payment Method</h3>
+          <div class="form-group" style="display:flex; gap:1.5rem; flex-wrap: wrap;">
+              <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+                  <input type="radio" name="paymentMethod" value="CASH_ON_DELIVERY" checked onchange="toggleReceiptField()"> Cash on Delivery
+              </label>
+              <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+                  <input type="radio" name="paymentMethod" value="CARD_PAYMENT" onchange="toggleReceiptField()"> Card Payment
+              </label>
+              <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+                  <input type="radio" name="paymentMethod" value="BANK_DEPOSIT" onchange="toggleReceiptField()"> Bank Deposit
+              </label>
+          </div>
+
+          <div id="receiptUploadGroup" class="form-group" style="display:none; margin-top:1rem; padding:1rem; background:rgba(212,163,115,0.1); border:1px dashed var(--gold); border-radius:8px;">
+              <label style="color:var(--gold);">Upload Payment Receipt (JPG/PNG/PDF) *</label>
+              <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.5rem;">Bank Acc: 1234-5678-9012 (Bank Name)</p>
+              <input type="file" id="receiptFile" accept=".jpg,.jpeg,.png,.pdf" style="background:rgba(255,255,255,0.05);color:var(--text);border:1px solid var(--glass-b);border-radius:8px;padding:0.75rem;width:100%;"/>
+          </div>
+
+          <div style="display:flex; gap:1rem; justify-content:flex-end; margin-top:2rem;">
+              <button type="button" class="btn-ghost" onclick="window.location.href='cart.html'">Cancel</button>
+              <button type="submit" class="btn-primary" id="placeOrderBtn">Place Order</button>
+          </div>
+      </form>
+      
+      <div id="successMessage" style="display:none; text-align:center; padding: 2rem;">
+          <div style="font-size:4rem; margin-bottom:1rem;">🎉</div>
+          <h2 class="gradient-text">Order Placed Successfully!</h2>
+          <p class="text-muted" style="margin-top:1rem;">Your order has been confirmed.</p>
+          <div style="margin-top:2rem; display:flex; gap:1rem; justify-content:center;">
+              <button id="trackOrderBtn" class="btn-gold" onclick="" style="padding:0.75rem 2rem;">📍 Track Order</button>
+              <button class="btn-primary" onclick="window.location.href='index.html'" style="padding:0.75rem 2rem;">Continue Shopping</button>
+          </div>
+      </div>
+    </section>
+  </main>
+  
+  <div id="toast" class="toast"></div>
+
+  <script>
+    let checkoutCart = [];
+    
+    document.addEventListener("DOMContentLoaded", () => {
+        loadCheckoutCart();
+        const userStr = localStorage.getItem('sb_user');
+        if (userStr) {
+            try {
+                const user = JSON.parse(userStr);
+                if (user.username) document.getElementById('custName').value = user.username;
+                if (user.email) document.getElementById('custEmail').value = user.email;
+            } catch(e){}
+        }
+    });
+
+    async function loadCheckoutCart() {
+        if (localStorage.getItem('sb_token')) {
+            try {
+                const res = await fetch('http://localhost:8080/cart', {
+                    headers: { 'Authorization': 'Bearer ' + localStorage.getItem('sb_token') }
+                });
+                if (res.ok) {
+                    const cart = await res.json();
+                    checkoutCart = cart.items || [];
+                }
+            } catch(e) { console.error(e); }
+        } else {
+            const c = localStorage.getItem('guestCart');
+            if (c) checkoutCart = JSON.parse(c);
+        }
+        
+        if (checkoutCart.length === 0) {
+            document.getElementById('checkoutSection').innerHTML = '<h2 style="text-align:center;">Your cart is empty.</h2><br><button class="btn-primary" style="display:block;margin:0 auto;" onclick="window.location.href=\'index.html\'">Go Shop</button>';
+            return;
+        }
+        
+        renderSummary();
+    }
+
+    function renderSummary() {
+        const container = document.getElementById('checkoutItems');
+        let html = '';
+        let total = 0;
+        checkoutCart.forEach(item => {
+            const p = item.book.price * item.quantity;
+            total += p;
+            html += `<div style="display:flex; justify-content:space-between; margin-bottom:0.5rem; border-bottom:1px solid var(--glass-b); padding-bottom:0.5rem;">
+                <span>${item.quantity}x ${item.book.title}</span>
+                <span>Rs ${p.toFixed(2)}</span>
+            </div>`;
+        });
+        
+        const ALL_COUPONS = [];
+        for (let i = 1; i <= 10; i++) {
+            ALL_COUPONS.push({
+                cutoff: i * 2000,
+                discount: 100 + (i * 50)
+            });
+        }
+        
+        let discount = 0;
+        let couponsToRender = [];
+        ALL_COUPONS.forEach(c => {
+            let applied = false;
+            if (total >= c.cutoff) {
+                discount += c.discount;
+                applied = true;
+            }
+            couponsToRender.push({
+                ...c,
+                applied: applied
+            });
+        });
+        
+        if (discount > 0) {
+            total -= discount;
+            html += `<div style="display:flex; justify-content:space-between; margin-bottom:0.5rem; border-bottom:1px solid var(--glass-b); padding-bottom:0.5rem; color: var(--green); font-weight: bold;">
+                <span>Total Coupon Discount</span>
+                <span>-Rs ${discount.toFixed(2)}</span>
+            </div>`;
+        }
+        
+        renderCoupons(couponsToRender);
+        
+        container.innerHTML = html;
+        document.getElementById('checkoutTotal').innerText = total.toFixed(2);
+    }
+
+    function renderCoupons(coupons) {
+        let leftSide = document.getElementById('coupon-left-side');
+        let rightSide = document.getElementById('coupon-right-side');
+        
+        if (!leftSide) {
+            leftSide = document.createElement('div');
+            leftSide.id = 'coupon-left-side';
+            leftSide.style.cssText = 'position: absolute; left: 20px; top: 120px; display: flex; flex-direction: column; gap: 1rem; z-index: 10;';
+            document.body.appendChild(leftSide);
+        }
+        
+        if (!rightSide) {
+            rightSide = document.createElement('div');
+            rightSide.id = 'coupon-right-side';
+            rightSide.style.cssText = 'position: absolute; right: 20px; top: 120px; display: flex; flex-direction: column; gap: 1rem; z-index: 10;';
+            document.body.appendChild(rightSide);
+        }
+        
+        leftSide.innerHTML = '';
+        rightSide.innerHTML = '';
+        
+        coupons.forEach((c, index) => {
+            const opacity = c.applied ? '1' : '0.4';
+            const filter = c.applied ? 'none' : 'grayscale(100%)';
+            const statusText = c.applied ? 'Applied Automatically ✓' : `Requires Rs. ${c.cutoff}`;
+            const statusColor = c.applied ? '#88ff88' : '#ffaa88';
+            
+            const couponHtml = `
+                <div class="visual-coupon fade-in-up" style="animation-delay: ${(index % 5) * 0.1}s; opacity: ${opacity}; filter: ${filter};">
+                    <div class="coupon-content">
+                        <h4>OVER RS. ${c.cutoff}</h4>
+                        <div class="coupon-amount">Rs ${c.discount} OFF</div>
+                        <div class="coupon-auto" style="color: ${statusColor}">${statusText}</div>
+                    </div>
+                </div>
+            `;
+            if (index < 5) {
+                leftSide.innerHTML += couponHtml;
+            } else {
+                rightSide.innerHTML += couponHtml;
+            }
+        });
+    }
+
+    // Modal logic for Card Payment
+    function showCardModal() {
+        document.getElementById('cardModal').style.display = 'flex';
+    }
+
+    function closeCardModal() {
+        document.getElementById('cardModal').style.display = 'none';
+        const btn = document.getElementById('placeOrderBtn');
+        btn.disabled = false;
+        btn.textContent = 'Place Order';
+    }
+
+    async function processCardPayment(e) {
+        e.preventDefault();
+        const btn = e.target.querySelector('button');
+        btn.disabled = true;
+        btn.textContent = 'Processing...';
+        
+        // Simulate payment delay
+        await new Promise(r => setTimeout(r, 1500));
+        
+        document.getElementById('cardModal').style.display = 'none';
+        await executeOrderPlacement('CARD_PAYMENT', null);
+    }
+
+    function toggleReceiptField() {
+        const method = document.querySelector('input[name="paymentMethod"]:checked').value;
+        const group = document.getElementById('receiptUploadGroup');
+        const fileInput = document.getElementById('receiptFile');
+        if (method === 'BANK_DEPOSIT') {
+            group.style.display = 'block';
+            fileInput.required = true;
+        } else {
+            group.style.display = 'none';
+            fileInput.required = false;
+        }
+    }
+
+    document.getElementById('checkoutForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('placeOrderBtn');
+        btn.disabled = true;
+        btn.textContent = 'Processing...';
+
+        const method = document.querySelector('input[name="paymentMethod"]:checked').value;
+        
+        if (method === 'CARD_PAYMENT') {
+            showCardModal();
+            return; // Wait for card modal submission
+        }
+
+        await executeOrderPlacement(method, null);
+    });
+
+    async function executeOrderPlacement(method, providedReceipt) {
+
+        try {
+            let receiptFileName = providedReceipt;
+
+            if (method === 'BANK_DEPOSIT') {
+                const fileInput = document.getElementById('receiptFile');
+                if (!fileInput.files.length) {
+                    throw new Error("Please upload your bank deposit receipt.");
+                }
+                const fd = new FormData();
+                fd.append('file', fileInput.files[0]);
+                
+                const uploadRes = await fetch('http://localhost:8080/api/orders/upload-receipt', {
+                    method: 'POST',
+                    headers: localStorage.getItem('sb_token') ? { 'Authorization': 'Bearer ' + localStorage.getItem('sb_token') } : {},
+                    body: fd
+                });
+                
+                if (!uploadRes.ok) throw new Error("Failed to upload receipt.");
+                const uploadData = await uploadRes.json();
+                receiptFileName = uploadData.fileName;
+            }
+
+            const itemsReq = checkoutCart.map(i => ({
+                bookId: i.book.id,
+                quantity: i.quantity
+            }));
+
+            const orderReq = {
+                customerName: document.getElementById('custName').value,
+                customerEmail: document.getElementById('custEmail').value,
+                address: document.getElementById('custAddress').value,
+                phone: document.getElementById('custPhone').value,
+                paymentMethod: method,
+                paymentReceipt: receiptFileName,
+                items: itemsReq
+            };
+
+            const orderRes = await fetch('http://localhost:8080/api/orders', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(localStorage.getItem('sb_token') && { 'Authorization': 'Bearer ' + localStorage.getItem('sb_token') })
+                },
+                body: JSON.stringify(orderReq)
+            });
+
+            if (!orderRes.ok) throw new Error("Failed to place order.");
+            
+            const createdOrder = await orderRes.json();
+            document.getElementById('trackOrderBtn').onclick = () => window.location.href = `track-order.html?id=${createdOrder.id}`;
+            
+            // clear cart
+            if (localStorage.getItem('sb_token')) {
+                await fetch('http://localhost:8080/cart/clear', { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + localStorage.getItem('sb_token') } });
+            } else {
+                localStorage.removeItem('guestCart');
+            }
+            if (window.updateCartCount) window.updateCartCount();
+
+            document.getElementById('checkoutForm').style.display = 'none';
+            document.getElementById('orderSummary').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'block';
+
+        } catch (err) {
+            alert(err.message);
+            const btn = document.getElementById('placeOrderBtn');
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = 'Place Order';
+            }
+        }
+    }
+  </script>
+  
+  <!-- Card Payment Modal -->
+  <div id="cardModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.8);z-index:9999;justify-content:center;align-items:center;backdrop-filter:blur(8px);">
+    <div class="glass-panel" style="max-width:400px;width:90%;background:rgba(11,12,16,0.95);">
+      <h3 style="margin-bottom:1.5rem;text-align:center;color:var(--primary);font-family:'Playfair Display',serif;">Secure Card Payment</h3>
+      
+      <!-- Virtual Card Display -->
+      <div class="virtual-card" id="virtualCard">
+        <div class="card-chip"></div>
+        <div class="card-number-display" id="displayCardNumber">#### #### #### ####</div>
+        <div class="card-bottom-info">
+            <div>
+                <div class="card-label">Card Holder</div>
+                <div id="displayCardName">JOHN DOE</div>
+            </div>
+            <div>
+                <div class="card-label">Expires</div>
+                <div id="displayCardExpiry">MM/YY</div>
+            </div>
+        </div>
+      </div>
+
+      <form onsubmit="processCardPayment(event)">
+        <div style="margin-bottom:1rem;">
+          <label style="display:block;margin-bottom:0.4rem;color:var(--muted);font-size:0.85rem;">Cardholder Name</label>
+          <input type="text" id="cardNameInput" required placeholder="John Doe" style="width:100%;padding:0.8rem;border-radius:8px;border:1px solid var(--glass-b);background:rgba(0,0,0,0.5);color:var(--text);" maxlength="50" oninput="updateCardDisplay()">
+        </div>
+        <div style="margin-bottom:1rem;">
+          <label style="display:block;margin-bottom:0.4rem;color:var(--muted);font-size:0.85rem;">Card Number</label>
+          <input type="text" id="cardNumberInput" required pattern="\d{16}" placeholder="1234567891011121" style="width:100%;padding:0.8rem;border-radius:8px;border:1px solid var(--glass-b);background:rgba(0,0,0,0.5);color:var(--text);" maxlength="16" oninput="updateCardDisplay()">
+        </div>
+        <div style="display:flex;gap:1rem;margin-bottom:1.5rem;">
+          <div style="flex:1;">
+            <label style="display:block;margin-bottom:0.4rem;color:var(--muted);font-size:0.85rem;">Expiry (MM/YY)</label>
+            <input type="text" id="cardExpiryInput" required pattern="(0[1-9]|1[0-2])\/?([0-9]{2})" placeholder="MM/YY" style="width:100%;padding:0.8rem;border-radius:8px;border:1px solid var(--glass-b);background:rgba(0,0,0,0.5);color:var(--text);" maxlength="5" oninput="updateCardDisplay()">
+          </div>
+          <div style="flex:1;">
+            <label style="display:block;margin-bottom:0.4rem;color:var(--muted);font-size:0.85rem;">CVV</label>
+            <input type="text" id="cardCvvInput" required pattern="\d{3,4}" placeholder="123" style="width:100%;padding:0.8rem;border-radius:8px;border:1px solid var(--glass-b);background:rgba(0,0,0,0.5);color:var(--text);" maxlength="4" oninput="updateCardDisplay()">
+          </div>
+        </div>
+        <button type="submit" class="btn-primary" style="width:100%;padding:1rem;font-size:1rem;margin-bottom:0.8rem;">Complete Payment</button>
+        <button type="button" class="btn-ghost" style="width:100%;padding:0.8rem;" onclick="closeCardModal()">Cancel</button>
+      </form>
+    </div>
+  </div>
+  
+  <script>
+    function updateCardDisplay() {
+        const name = document.getElementById('cardNameInput').value.trim();
+        const number = document.getElementById('cardNumberInput').value.replace(/\D/g, '');
+        const expiry = document.getElementById('cardExpiryInput').value.trim();
+        
+        document.getElementById('displayCardName').innerText = name || 'JOHN DOE';
+        
+        let formattedNumber = '';
+        for (let i = 0; i < 16; i++) {
+            if (i > 0 && i % 4 === 0) formattedNumber += ' ';
+            if (i < number.length) formattedNumber += number[i];
+            else formattedNumber += '#';
+        }
+        document.getElementById('displayCardNumber').innerText = formattedNumber;
+        
+        document.getElementById('displayCardExpiry').innerText = expiry || 'MM/YY';
+    }
+  </script>
+
+  <script src="app.js?v=6.0"></script>
+<script src='theme.js'></script>
+</body>
+</html>
+

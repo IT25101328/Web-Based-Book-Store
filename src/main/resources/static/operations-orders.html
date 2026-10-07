@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Operations - Orders</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Outfit:wght@400;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=3.0" />
+</head>
+<body>
+  <header class="navbar glass-nav">
+    <nav class="navbar">
+      <div class="logo"><span class="logo-icon">📦</span><h1>Operations Portal</h1></div>
+      <ul class="nav-links">
+        <li><a href="operations-dashboard.html" class="nav-link">Dashboard</a></li>
+        <li><a href="operations-orders.html" class="nav-link active">Orders</a></li>
+        <li><a href="operations-logistics.html" class="nav-link">Logistics</a></li>
+      </ul>
+      <div class="nav-actions"><button class="btn-primary" onclick="logoutMPA()">Log Out</button></div>
+    </nav>
+  </header>
+  <main class="main-content">
+    <div class="page-header fade-in-up"><h1 class="gradient-text">Manage Orders</h1></div>
+    <div class="glass-panel fade-in-up">
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>#</th><th>Customer</th><th>Total</th><th>Status</th><th>Update Status</th></tr></thead>
+          <tbody id="adminOrdersBody"><tr><td colspan="5">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+  <div id="toast" class="toast"></div>
+  <script src="app.js?v=6.0"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      enforceRole('OPERATIONS');
+      try {
+        const orders = await apiFetch('/api/orders');
+        document.getElementById('adminOrdersBody').innerHTML = orders.map(o => `
+          <tr>
+            <td>#${o.id}</td><td>${o.customerName}</td><td>Rs ${Number(o.totalAmount).toFixed(2)}</td>
+            <td><span class="badge badge-${o.status.toLowerCase()}">${o.status}</span></td>
+            <td>
+              <select onchange="updateOrderStatus(${o.id}, this.value)" style="padding:0.3rem;border-radius:6px;">
+                ${['PENDING','PACKED','SHIPPED','DELIVERED','CANCELLED'].map(s => `<option value="${s}" ${o.status===s?'selected':''}>${s}</option>`).join('')}
+              </select>
+            </td>
+          </tr>`).join('');
+      } catch {}
+    });
+    async function updateOrderStatus(id, status) {
+      try { await apiFetch(`/api/orders/${id}/status`, { method:'PUT', body:JSON.stringify({ status }) }); showToast('Updated ✓', 'success'); } catch {}
+    }
+  </script>
+<script src='theme.js'></script>
+</body>
+</html>
+
